@@ -109,7 +109,7 @@ export default function Home({ navigation }: any) {
           {avatar ? <Avatar config={avatar} size={92} /> : <View style={s.avatarVuoto}><Text style={{ fontSize: 40 }}>🙂</Text><Text style={s.avatarT}>Crea avatar</Text></View>}
         </Animated.View>
       </Pressable>
-      <Text style={s.titolo}>CamminaCamenella</Text>
+      <Text style={s.titolo}>{'Cammina\nCamenella'}</Text>
       <Text style={s.frase}>{leggiPref('nome', '') ? `Ciao ${leggiPref('nome', '')}! ` : ''}{frase}</Text>
       <View style={{ flex: 1, justifyContent: 'center' }}>
         <Bottone grande testo={inCorso ? '▶ CONTINUA' : '▶ START'} onPress={start} colore={colori.arancio} />
@@ -127,7 +127,7 @@ const s = StyleSheet.create({
   avatar: { alignSelf: 'center', marginBottom: 6 },
   avatarVuoto: { width: 92, height: 92, borderRadius: 46, backgroundColor: colori.giallo, alignItems: 'center', justifyContent: 'center' },
   avatarT: { fontSize: 11, fontWeight: '800', color: colori.testo },
-  titolo: { fontSize: 36, fontWeight: '900', color: colori.giallo, textAlign: 'center' },
+  titolo: { fontSize: 36, lineHeight: 40, fontWeight: '900', color: colori.giallo, textAlign: 'center' },
   frase: { fontSize: 18, color: colori.bianco, textAlign: 'center', marginTop: 8 },
   ultima: { color: colori.bianco, textAlign: 'center', marginTop: 20, fontSize: 16 },
   nota: { color: colori.giallo, textAlign: 'center', marginTop: 24, fontSize: 14 },

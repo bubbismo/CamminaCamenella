@@ -44,7 +44,7 @@ export function Splash({ children }: { children: React.ReactNode }) {
           <Animated.View style={{ transform: [{ scale: entra.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }, { rotate: rotazione }] }}>
             <Image source={require('../assets/splash-icon.png')} style={s.logo} resizeMode="contain" />
           </Animated.View>
-          <Animated.Text style={[s.nome, { opacity: entra }]}>CamminaCamenella</Animated.Text>
+          <Animated.Text style={[s.nome, { opacity: entra }]}>{'Cammina\nCamenella'}</Animated.Text>
           <Animated.Text style={[s.slogan, { opacity: entra }]}>Ogni passo conta!</Animated.Text>
           <Animated.Text style={[s.invito, { opacity: invito }]}>Tocca per iniziare 👆</Animated.Text>
           </Pressable>
@@ -59,6 +59,6 @@ const s = StyleSheet.create({
   tocco: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
   invito: { position: 'absolute', bottom: 70, fontSize: 18, fontWeight: '700', color: colori.giallo },
   logo: { width: 220, height: 220 },
-  nome: { marginTop: 8, fontSize: 36, fontWeight: '900', color: colori.giallo, letterSpacing: -0.5 },
+  nome: { marginTop: 8, fontSize: 40, lineHeight: 44, fontWeight: '900', color: colori.giallo, letterSpacing: -0.5, textAlign: 'center' },
   slogan: { marginTop: 6, fontSize: 18, color: colori.bianco },
 });
