@@ -23,28 +23,11 @@ export function puntoValido(prec: Punto | null, nuovo: Punto): boolean {
   return true;
 }
 
-// Dislivello con altitudine smussata (media mobile) e soglia anti-rumore (isteresi).
-const SOGLIA_QUOTA_M = 3;
-
+/** Distanza totale lungo i punti validi. Il dislivello si calcola in core/altimetria. */
 export function statistiche(pts: Punto[]) {
   let distanzaM = 0;
   for (let i = 1; i < pts.length; i++) distanzaM += distanza(pts[i - 1], pts[i]);
-
-  const quote = pts.map((p) => p.alt).filter((a): a is number => a != null);
-  const lisce = quote.map((_, i) => {
-    const da = Math.max(0, i - 2), a = Math.min(quote.length - 1, i + 2);
-    let s = 0; for (let k = da; k <= a; k++) s += quote[k];
-    return s / (a - da + 1);
-  });
-  let salita = 0, discesa = 0;
-  if (lisce.length) {
-    let rif = lisce[0];
-    for (const q of lisce) {
-      if (q - rif >= SOGLIA_QUOTA_M) { salita += q - rif; rif = q; }
-      else if (rif - q >= SOGLIA_QUOTA_M) { discesa += rif - q; rif = q; }
-    }
-  }
-  return { distanzaM, salitaM: salita, discesaM: discesa };
+  return { distanzaM };
 }
 
 export function formatDurata(ms: number): string {

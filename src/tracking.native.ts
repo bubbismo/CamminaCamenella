@@ -18,7 +18,7 @@ TaskManager.defineTask(TASK_GPS, async ({ data, error }) => {
   for (const l of locations) {
     const p: Punto = {
       t: l.timestamp, lat: l.coords.latitude, lon: l.coords.longitude,
-      alt: l.coords.altitude, acc: l.coords.accuracy, speed: l.coords.speed,
+      alt: l.coords.altitude, alt_acc: l.coords.altitudeAccuracy, acc: l.coords.accuracy, speed: l.coords.speed,
     };
     if (!puntoValido(ultimo, p)) continue;
     await aggiungiPunto(w.id, p);

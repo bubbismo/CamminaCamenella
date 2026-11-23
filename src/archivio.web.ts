@@ -1,17 +1,21 @@
 // Archivio per il browser: IndexedDB. Stessa interfaccia di archivio.native.ts.
 import type { Camminata, Punto } from './core/tipi';
+import type { Percorso } from './core/altimetria/percorsi';
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 function apri(): Promise<IDBDatabase> {
   if (!dbPromise) {
     dbPromise = new Promise((ok, ko) => {
-      const rq = indexedDB.open('camminacamenella', 1);
+      const rq = indexedDB.open('camminacamenella', 2);
       rq.onupgradeneeded = () => {
         const db = rq.result;
-        db.createObjectStore('walks', { keyPath: 'id', autoIncrement: true });
-        const pts = db.createObjectStore('points', { keyPath: 'id', autoIncrement: true });
-        pts.createIndex('walk', ['walk_id', 't']);
+        if (!db.objectStoreNames.contains('walks')) db.createObjectStore('walks', { keyPath: 'id', autoIncrement: true });
+        if (!db.objectStoreNames.contains('points')) {
+          const pts = db.createObjectStore('points', { keyPath: 'id', autoIncrement: true });
+          pts.createIndex('walk', ['walk_id', 't']);
+        }
+        if (!db.objectStoreNames.contains('percorsi')) db.createObjectStore('percorsi', { keyPath: 'id', autoIncrement: true });
       };
       rq.onsuccess = () => {
         ok(rq.result);
@@ -28,7 +32,7 @@ function rich<T>(r: IDBRequest<T>): Promise<T> {
   return new Promise((ok, ko) => { r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
 }
 
-async function store(nome: 'walks' | 'points', rw = false) {
+async function store(nome: 'walks' | 'points' | 'percorsi', rw = false) {
   const db = await apri();
   return db.transaction(nome, rw ? 'readwrite' : 'readonly').objectStore(nome);
 }
@@ -36,7 +40,7 @@ async function store(nome: 'walks' | 'points', rw = false) {
 export async function nuovaCamminata(startedAt: number): Promise<number> {
   const w: Omit<Camminata, 'id'> = {
     started_at: startedAt, ended_at: null, status: 'recording', paused_since: null, paused_total_ms: 0,
-    distance_m: 0, ascent_m: 0, descent_m: 0, active_ms: 0, calories: null, rpe: null, notes: null,
+    distance_m: 0, ascent_m: 0, descent_m: 0, active_ms: 0, calories: null, rpe: null, notes: null, altimetria: null,
   };
   return (await rich((await store('walks', true)).add(w))) as number;
 }
@@ -69,7 +73,7 @@ export async function aggiungiPunto(walkId: number, p: Punto) {
 export async function punti(walkId: number): Promise<Punto[]> {
   const r = (await rich((await store('points')).index('walk').getAll(
     IDBKeyRange.bound([walkId, 0], [walkId, Number.MAX_SAFE_INTEGER])))) as any[];
-  return r.map(({ t, lat, lon, alt, acc, speed, gap }) => ({ t, lat, lon, alt, acc, speed, gap }));
+  return r.map(({ t, lat, lon, alt, alt_acc, acc, speed, gap }) => ({ t, lat, lon, alt, alt_acc, acc, speed, gap }));
 }
 
 export async function ultimoPunto(walkId: number): Promise<Punto | null> {
@@ -90,4 +94,13 @@ export async function eliminaCamminata(id: number) {
   const cur = idx.openCursor(IDBKeyRange.bound([id, 0], [id, Number.MAX_SAFE_INTEGER]));
   cur.onsuccess = () => { const c = cur.result; if (c) { c.delete(); c.continue(); } };
   await new Promise<void>((ok, ko) => { tx.oncomplete = () => ok(); tx.onerror = () => ko(tx.error); });
+}
+
+export async function elencoPercorsi(): Promise<Percorso[]> {
+  return (await rich((await store('percorsi')).getAll())) as Percorso[];
+}
+
+export async function salvaPercorso(p: Percorso): Promise<number> {
+  const st = await store('percorsi', true);
+  return (await rich(p.id != null ? st.put(p) : st.add({ ...p, id: undefined }))) as number;
 }

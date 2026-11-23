@@ -7,6 +7,7 @@ import Home from './src/screens/Home';
 import Attivita from './src/screens/Attivita';
 import Storico from './src/screens/Storico';
 import Dettaglio from './src/screens/Dettaglio';
+import Impostazioni from './src/screens/Impostazioni';
 import { DialogoProvider } from './src/dialogo';
 
 const Stack = createNativeStackNavigator();
@@ -20,6 +21,7 @@ export default function App() {
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
         <Stack.Screen name="Attivita" component={Attivita} options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="Storico" component={Storico} options={{ title: 'Le mie camminate' }} />
+        <Stack.Screen name="Impostazioni" component={Impostazioni} options={{ title: 'Impostazioni' }} />
         <Stack.Screen name="Dettaglio" component={Dettaglio} options={{ title: 'Dettaglio' }} />
       </Stack.Navigator>
     </NavigationContainer>

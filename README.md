@@ -27,6 +27,15 @@ Indirizzo: **https://bubbismo.github.io/CamminaCamenella/**
 - I dati sono nel browser: se pulisci i dati di Safari/Chrome si perdono. (Una funzione di backup arriverà.)
 - La stima del dislivello è approssimativa (altitudine GPS smussata).
 
+## Dislivello preciso (senza barometro)
+Il GPS sbaglia la quota di 10-20 m e, sommando il rumore, gonfia il dislivello. CamminaCamenella lo corregge in più modi (modulo `src/core/altimetria/`, comune a web e Android):
+1. **Filtro e isteresi** (sempre, sul telefono): i punti si pesano per la precisione dichiarata dal GPS, si fondono con un filtro di Kalman e si contano solo le variazioni oltre una soglia (3 m, configurabile).
+2. **Modello del terreno** (opzionale, *Impostazioni → Correggi la quota con la rete*, spento di default): a fine corsa si scaricano le quote del terreno e si fondono con quelle del GPS. Usa le tessere pubbliche *Terrain Tiles* su AWS: il telefono scarica alcune tessere (~2 km ciascuna) e legge le quote da sé, quindi i tuoi punti non partono. Riserva: Open-Meteo (qui partono le coordinate dei punti ricampionati ogni 25 m).
+3. **Percorsi ripetuti** (sul telefono): se una corsa ricalca un percorso già fatto, il dislivello si stabilizza con il profilo medio delle uscite precedenti.
+Nel dettaglio della corsa si vede da dove viene il dislivello. I dati GPS grezzi non vengono mai modificati, quindi si può ricalcolare. È sempre una **stima**. Non ancora fatto: aggancio dei punti al sentiero OSM (map matching).
+
+Test: `npm test` (tracce GPS rumorose simulate).
+
 ## App Android (APK)
 Scarica `CamminaCamenella-*.apk` dalla sezione Releases, consenti "Installa app sconosciute", installa e scegli la posizione "Consenti sempre". Disattiva le ottimizzazioni batteria per l'app.
 

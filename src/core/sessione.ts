@@ -2,6 +2,7 @@
 import { aggiorna, camminata, camminateAperte, eliminaCamminata, nuovaCamminata, punti } from '../archivio';
 import { avviaTracciamento, fermaTracciamento } from '../tracking';
 import { statistiche } from './geo';
+import { elaboraCamminata } from './altimetria/servizio';
 
 export async function avvia(): Promise<number> {
   const id = await nuovaCamminata(Date.now());
@@ -37,8 +38,11 @@ export async function termina(id: number) {
   await aggiorna(id, {
     status: 'done', ended_at: now, paused_since: null, paused_total_ms: pausato,
     active_ms: now - w.started_at - pausato,
-    distance_m: s.distanzaM, ascent_m: s.salitaM, descent_m: s.discesaM,
+    distance_m: s.distanzaM,
   });
+  // Dislivello: filtro locale subito, correzione col terreno (se attiva) in secondo piano.
+  await elaboraCamminata(id, { saltaRete: true });
+  elaboraCamminata(id).catch(() => {});
 }
 
 export async function scarta(id: number) {

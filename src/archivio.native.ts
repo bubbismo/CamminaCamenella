@@ -1,5 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import type { Camminata, Punto } from './core/tipi';
+import type { Percorso } from './core/altimetria/percorsi';
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -22,11 +23,15 @@ function getDb() {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           walk_id INTEGER NOT NULL REFERENCES walks(id) ON DELETE CASCADE,
           t INTEGER NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL,
-          alt REAL, acc REAL, speed REAL, gap INTEGER
+          alt REAL, acc REAL, speed REAL, gap INTEGER, alt_acc REAL
         );
+        CREATE TABLE IF NOT EXISTS percorsi (id INTEGER PRIMARY KEY AUTOINCREMENT, dati TEXT NOT NULL);
         CREATE INDEX IF NOT EXISTS idx_points_walk ON points(walk_id, t);
       `);
-      try { await db.execAsync('ALTER TABLE points ADD COLUMN gap INTEGER'); } catch {} // vecchie installazioni
+      // vecchie installazioni
+      try { await db.execAsync('ALTER TABLE points ADD COLUMN gap INTEGER'); } catch {}
+      try { await db.execAsync('ALTER TABLE points ADD COLUMN alt_acc REAL'); } catch {}
+      try { await db.execAsync('ALTER TABLE walks ADD COLUMN altimetria TEXT'); } catch {}
       await db.execAsync('PRAGMA foreign_keys = ON;');
       return db;
     })();
@@ -35,7 +40,7 @@ function getDb() {
 }
 
 const COLONNE = ['ended_at', 'status', 'paused_since', 'paused_total_ms', 'distance_m', 'ascent_m',
-  'descent_m', 'active_ms', 'calories', 'rpe', 'notes'];
+  'descent_m', 'active_ms', 'calories', 'rpe', 'notes', 'altimetria'];
 
 export async function nuovaCamminata(startedAt: number): Promise<number> {
   const db = await getDb();
@@ -63,18 +68,18 @@ export async function camminateAperte(): Promise<Camminata[]> {
 
 export async function aggiungiPunto(walkId: number, p: Punto) {
   const db = await getDb();
-  await db.runAsync('INSERT INTO points (walk_id,t,lat,lon,alt,acc,speed,gap) VALUES (?,?,?,?,?,?,?,?)',
-    walkId, p.t, p.lat, p.lon, p.alt, p.acc, p.speed, p.gap ?? null);
+  await db.runAsync('INSERT INTO points (walk_id,t,lat,lon,alt,acc,speed,gap,alt_acc) VALUES (?,?,?,?,?,?,?,?,?)',
+    walkId, p.t, p.lat, p.lon, p.alt, p.acc, p.speed, p.gap ?? null, p.alt_acc ?? null);
 }
 
 export async function ultimoPunto(walkId: number): Promise<Punto | null> {
   const db = await getDb();
-  return db.getFirstAsync<Punto>('SELECT t, lat, lon, alt, acc, speed, gap FROM points WHERE walk_id = ? ORDER BY t DESC LIMIT 1', walkId);
+  return db.getFirstAsync<Punto>('SELECT t, lat, lon, alt, alt_acc, acc, speed, gap FROM points WHERE walk_id = ? ORDER BY t DESC LIMIT 1', walkId);
 }
 
 export async function punti(walkId: number): Promise<Punto[]> {
   const db = await getDb();
-  return db.getAllAsync<Punto>('SELECT t, lat, lon, alt, acc, speed, gap FROM points WHERE walk_id = ? ORDER BY t', walkId);
+  return db.getAllAsync<Punto>('SELECT t, lat, lon, alt, alt_acc, acc, speed, gap FROM points WHERE walk_id = ? ORDER BY t', walkId);
 }
 
 export async function elencoCamminate(): Promise<Camminata[]> {
@@ -91,4 +96,17 @@ export async function eliminaCamminata(id: number) {
   const db = await getDb();
   await db.runAsync('DELETE FROM points WHERE walk_id = ?', id);
   await db.runAsync('DELETE FROM walks WHERE id = ?', id);
+}
+
+export async function elencoPercorsi(): Promise<Percorso[]> {
+  const db = await getDb();
+  const r = await db.getAllAsync<{ id: number; dati: string }>('SELECT id, dati FROM percorsi');
+  return r.map((x) => ({ ...JSON.parse(x.dati), id: x.id }));
+}
+
+export async function salvaPercorso(p: Percorso): Promise<number> {
+  const db = await getDb();
+  const { id, ...resto } = p;
+  if (id != null) { await db.runAsync('UPDATE percorsi SET dati=? WHERE id=?', JSON.stringify(resto), id); return id; }
+  return (await db.runAsync('INSERT INTO percorsi (dati) VALUES (?)', JSON.stringify(resto))).lastInsertRowId;
 }

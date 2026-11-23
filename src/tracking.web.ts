@@ -50,7 +50,7 @@ export async function avviaTracciamento(walkId: number, dopoInterruzione = false
     if (!w || w.id !== walkAttiva || w.status !== 'recording') return;
     const p: Punto = {
       t: pos.timestamp, lat: pos.coords.latitude, lon: pos.coords.longitude,
-      alt: pos.coords.altitude, acc: pos.coords.accuracy, speed: pos.coords.speed,
+      alt: pos.coords.altitude, alt_acc: pos.coords.altitudeAccuracy, acc: pos.coords.accuracy, speed: pos.coords.speed,
     };
     ultimaAcc = p.acc; ultimaT = p.t; ultimoErrore = null;
     if (primoDopoInterruzione) {

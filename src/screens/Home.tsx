@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Linking, Platform, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Bottone } from '../ui';
 import { colori } from '../theme';
@@ -8,6 +8,7 @@ import { richiediPermessi, sfondoPossibile, staTracciando } from '../tracking';
 import { avvia, pulisciVuote, riprendiDopoInterruzione, scarta, termina } from '../core/sessione';
 import { formatDistanza } from '../core/geo';
 import { useDialogo } from '../dialogo';
+import { riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
 
 const FRASI = ['Ogni passo conta! 💪', 'Oggi si va forte! 🔥', 'Le gambe sono pronte? 😄', 'Che bella giornata per camminare! ☀️'];
 
@@ -20,6 +21,7 @@ export default function Home({ navigation }: any) {
   const controlla = useCallback(() => {
     (async () => {
       await pulisciVuote();
+      riprovaCorrezioniPendenti().catch(() => {});
       const w = await camminataInCorso();
       setInCorso(!!w);
       const e = await elencoCamminate();
@@ -38,6 +40,13 @@ export default function Home({ navigation }: any) {
     })();
   }, []);
   useFocusEffect(controlla);
+  React.useEffect(() => {
+    // Torna la rete: si completano le correzioni rimaste in attesa.
+    const g: any = globalThis;
+    const f = () => riprovaCorrezioniPendenti().catch(() => {});
+    g.addEventListener?.('online', f);
+    return () => g.removeEventListener?.('online', f);
+  }, []);
 
   const occupato = useRef(false);
   const impostazioni = () => { if (Platform.OS !== 'web') Linking.openSettings(); };
@@ -66,6 +75,7 @@ export default function Home({ navigation }: any) {
 
   return (
     <View style={s.c}>
+      <Pressable onPress={() => navigation.navigate('Impostazioni')} style={s.ingranaggio}><Text style={{ fontSize: 28 }}>⚙️</Text></Pressable>
       <Text style={s.titolo}>CamminaCamenella</Text>
       <Text style={s.frase}>{frase}</Text>
       <View style={{ flex: 1, justifyContent: 'center' }}>
@@ -80,6 +90,7 @@ export default function Home({ navigation }: any) {
 
 const s = StyleSheet.create({
   c: { flex: 1, backgroundColor: colori.rosso, padding: 20, paddingTop: 60 },
+  ingranaggio: { position: 'absolute', top: 50, right: 16, zIndex: 5, padding: 6 },
   titolo: { fontSize: 36, fontWeight: '900', color: colori.giallo, textAlign: 'center' },
   frase: { fontSize: 18, color: colori.bianco, textAlign: 'center', marginTop: 8 },
   ultima: { color: colori.bianco, textAlign: 'center', marginTop: 20, fontSize: 16 },

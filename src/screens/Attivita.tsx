@@ -5,6 +5,7 @@ import { BottonePressioneLunga } from '../ui';
 import { Camminata } from '../core/tipi';
 import { camminataInCorso, punti } from '../archivio';
 import { formatDistanza, formatDurata, formatPasso, statistiche } from '../core/geo';
+import { dislivelloLive } from '../core/altimetria';
 import { pausa, riprendi, termina } from '../core/sessione';
 import { statoGps } from '../tracking';
 import { Mappa } from '../Mappa';
@@ -30,7 +31,7 @@ export default function Attivita({ navigation }: any) {
       const c = await camminataInCorso();
       if (!vivo) return;
       setW(c); setOra(Date.now());
-      if (c) { const pp = await punti(c.id); setPts(pp); setSt(statistiche(pp)); setGps(await statoGps(c.id)); }
+      if (c) { const pp = await punti(c.id); setPts(pp); { const dl = dislivelloLive(pp); setSt({ ...statistiche(pp), salitaM: dl.salita, discesaM: dl.discesa }); } setGps(await statoGps(c.id)); }
     };
     giro();
     const t = setInterval(giro, 1000);
