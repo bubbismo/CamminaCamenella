@@ -8,6 +8,7 @@ import { calcolaAltimetria, calorieDaRisultato, Fonte, SD, SOGLIA_PREDEFINITA_M 
 import { campiona } from './campiona';
 import { ottieniDem } from './dem';
 import { aggiornaProfilo, nuovoPercorso, trovaPercorso } from './percorsi';
+import { calcolaPrestazioni, tipoAutomatico } from '../record';
 import { calcolaMovimento, OpzioniMovimento, pauseManuali, SOGLIA_KMH_PREDEFINITA } from '../movimento';
 
 export type StatoDem = 'no' | 'in_corso' | 'attesa' | 'ok';
@@ -95,7 +96,10 @@ export async function elaboraCamminata(id: number, opz: { saltaRete?: boolean } 
         dem_quote: dem?.quote, dem_sigma: dem ? demSigma : undefined, in_profilo: inProfilo ?? giaInProfilo,
       };
       const peso = pesoConfigurato();
-      await aggiorna(id, { ascent_m: r.salita, descent_m: r.discesa, moving_ms: Math.min(mov.movimentoMs, w.active_ms || mov.movimentoMs), calories: peso ? calorieDaRisultato(r, peso, mov.soste) : null, altimetria: JSON.stringify({ ...info, peso_kg: peso ?? undefined }) });
+      const movingMs = Math.min(mov.movimentoMs, w.active_ms || mov.movimentoMs);
+      const prest = calcolaPrestazioni(pts, { soste: mov.soste, durataMs: movingMs, salitaM: r.salita, inizio: w.started_at });
+      await aggiorna(id, { ascent_m: r.salita, descent_m: r.discesa, moving_ms: movingMs,
+        prestazioni: JSON.stringify(prest), tipo: w.tipo ?? tipoAutomatico(prest), calories: peso ? calorieDaRisultato(r, peso, mov.soste) : null, altimetria: JSON.stringify({ ...info, peso_kg: peso ?? undefined }) });
       return { r, c, info };
     };
 
@@ -116,7 +120,7 @@ export async function elaboraCamminata(id: number, opz: { saltaRete?: boolean } 
 
     // Contributo al profilo dei percorsi ripetuti: solo quando il risultato è definitivo
     const definitivo = stato === 'ok' || !correzioneReteAttiva();
-    if (definitivo && lunghezza >= 300 && ris.info.in_profilo == null) {
+    if (definitivo && lunghezza >= 300 && ris.info.in_profilo == null) try {
       const senzaProfilo = calcolaAltimetria(pts, { soglia, dem: demQuote ? { quote: demQuote, sigma: demSigma } : undefined });
       const c = ris.c;
       const profilo = c
@@ -126,6 +130,8 @@ export async function elaboraCamminata(id: number, opz: { saltaRete?: boolean } 
       const w2 = await camminata(id);
       const info = leggiInfo(w2!)!;
       await aggiorna(id, { altimetria: JSON.stringify({ ...info, in_profilo: pid }) });
+    } catch (e) {
+      console.warn('profilo del percorso non salvato', e); // facoltativo: il dislivello è già salvato
     }
   } finally {
     inCorso.delete(id);

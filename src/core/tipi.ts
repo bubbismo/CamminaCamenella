@@ -15,4 +15,8 @@ export type Camminata = {
   moving_ms?: number | null;
   /** JSON [[inizio,fine],...] delle pause manuali */
   pause_manuali?: string | null;
+  /** 'camminata' | 'corsa' (deciso in automatico dalla velocità, correggibile a mano) */
+  tipo?: 'camminata' | 'corsa' | null;
+  /** JSON delle prestazioni per i record personali (vedi core/record.ts) */
+  prestazioni?: string | null;
 };

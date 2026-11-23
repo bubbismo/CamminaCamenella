@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diDistanza, diDurata, diPasso, frasePeriodica, Istantanea, leggiPrefVoce, PrefVoce, prossimiAnnunci } from './annunci';
+import { diDistanza, diDurata, diPasso, fraseRecord, frasePeriodica, Istantanea, leggiPrefVoce, PrefVoce, prossimiAnnunci } from './annunci';
 import type { Parziale } from './parziali';
 
 const pref = (x: Partial<PrefVoce> = {}): PrefVoce => ({ attiva: true, ogni: 'km', dati: ['tempo', 'distanza', 'passo', 'pause'], volume: 1, ...x });
@@ -22,6 +22,10 @@ describe('frasi', () => {
     expect(diDurata(3600000 + 5 * 60000 + 30000)).toBe("un'ora e 5 minuti");
     expect(diPasso(716)).toBe('11 minuti e 56 secondi al chilometro');
     expect(diPasso(0)).toBeNull();
+  });
+  it('frase del record', () => {
+    expect(fraseRecord({ cat: 'km', valore: 302000, precedente: 320000 })).toBe('Nuovo record personale! Km più veloce: 5 minuti e 2 secondi.');
+    expect(fraseRecord({ cat: 'distanza', valore: 12340, precedente: 10000 })).toBe('Nuovo record personale! Uscita più lunga: 12 chilometri e 340 metri.');
   });
   it('frase al km: traguardo esatto, tempo, passo dell\'ultimo km', () => {
     const f = frasePeriodica(ist({ distanzaM: 2012, movimentoMs: 24 * 60000, parziali: [parz(1, 730), parz(2, 716)] }), pref());
@@ -68,7 +72,7 @@ describe('quando parlare', () => {
   });
   it('preferenze lette con tolleranza', () => {
     const p = leggiPrefVoce((_k, d) => d);
-    expect(p).toEqual({ attiva: true, ogni: 'km', dati: ['tempo', 'distanza', 'passo', 'pause'], volume: 1 });
+    expect(p).toEqual({ attiva: true, ogni: 'km', dati: ['tempo', 'distanza', 'passo', 'pause', 'record'], volume: 1 });
     const q = leggiPrefVoce((k) => ({ voce: '0', voce_ogni: 'boh', voce_dati: 'tempo,xyz', voce_volume: '7' } as any)[k]);
     expect(q).toEqual({ attiva: false, ogni: 'km', dati: ['tempo'], volume: 1 });
   });

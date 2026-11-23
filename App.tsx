@@ -11,6 +11,8 @@ import Dettaglio from './src/screens/Dettaglio';
 import AvatarEditor from './src/screens/AvatarEditor';
 import Fatica from './src/screens/Fatica';
 import Impostazioni from './src/screens/Impostazioni';
+import Festa from './src/screens/Festa';
+import Record from './src/screens/Record';
 import { DialogoProvider } from './src/dialogo';
 import { Splash } from './src/Splash';
 
@@ -30,6 +32,8 @@ export default function App() {
         <Stack.Screen name="Avatar" component={AvatarEditor} options={{ title: 'Il tuo avatar' }} />
         <Stack.Screen name="Fatica" component={Fatica} options={{ title: 'Com\'è andata?', headerBackVisible: false, gestureEnabled: false }} />
         <Stack.Screen name="Statistiche" component={Statistiche} options={{ title: 'Statistiche' }} />
+        <Stack.Screen name="Festa" component={Festa} options={{ headerShown: false, gestureEnabled: false }} />
+        <Stack.Screen name="Record" component={Record} options={{ title: 'I miei record' }} />
         <Stack.Screen name="Dettaglio" component={Dettaglio} options={{ title: 'Dettaglio' }} />
       </Stack.Navigator>
     </NavigationContainer>

@@ -41,7 +41,7 @@ export async function nuovaCamminata(startedAt: number): Promise<number> {
   const w: Omit<Camminata, 'id'> = {
     started_at: startedAt, ended_at: null, status: 'recording', paused_since: null, paused_total_ms: 0,
     distance_m: 0, ascent_m: 0, descent_m: 0, active_ms: 0, calories: null, rpe: null, notes: null, altimetria: null,
-    moving_ms: null, pause_manuali: null,
+    moving_ms: null, pause_manuali: null, tipo: null, prestazioni: null,
   };
   return (await rich((await store('walks', true)).add(w))) as number;
 }
@@ -103,7 +103,10 @@ export async function elencoPercorsi(): Promise<Percorso[]> {
 
 export async function salvaPercorso(p: Percorso): Promise<number> {
   const st = await store('percorsi', true);
-  return (await rich(p.id != null ? st.put(p) : st.add({ ...p, id: undefined }))) as number;
+  if (p.id != null) return (await rich(st.put(p))) as number;
+  // Senza la proprietà "id" (nemmeno vuota): IndexedDB la genera da sé. Con id: undefined rifiuterebbe il salvataggio.
+  const { id: _nessuno, ...resto } = p;
+  return (await rich(st.add(resto))) as number;
 }
 
 /** Inserisce una camminata completa (da un backup) con tutti i suoi punti, in un'unica transazione. */

@@ -1,9 +1,10 @@
 // Annunci vocali: decide COSA dire e QUANDO. Funzione pura, identica su web e Android;
 // la voce vera e propria è in src/voce.web.ts / src/voce.native.ts.
 import type { Parziale } from './parziali';
+import { CATEGORIE, NuovoRecord } from './record';
 
 export type Frequenza = 'km' | '500m' | '5min' | '10min';
-export type DatoVoce = 'tempo' | 'distanza' | 'passo' | 'salita' | 'pause';
+export type DatoVoce = 'tempo' | 'distanza' | 'passo' | 'salita' | 'pause' | 'record';
 
 export type PrefVoce = { attiva: boolean; ogni: Frequenza; dati: DatoVoce[]; volume: number };
 
@@ -12,10 +13,10 @@ export const FREQUENZE: { v: Frequenza; t: string }[] = [
 ];
 export const DATI_VOCE: { v: DatoVoce; t: string }[] = [
   { v: 'tempo', t: 'Tempo' }, { v: 'distanza', t: 'Distanza' }, { v: 'passo', t: 'Passo' },
-  { v: 'salita', t: 'Salita' }, { v: 'pause', t: 'Pausa e ripresa' },
+  { v: 'salita', t: 'Salita' }, { v: 'pause', t: 'Pausa e ripresa' }, { v: 'record', t: 'Nuovi record' },
 ];
 export const VOLUMI = [{ v: 0.4, t: 'Basso' }, { v: 0.7, t: 'Medio' }, { v: 1, t: 'Alto' }];
-export const DATI_PREDEFINITI: DatoVoce[] = ['tempo', 'distanza', 'passo', 'pause'];
+export const DATI_PREDEFINITI: DatoVoce[] = ['tempo', 'distanza', 'passo', 'pause', 'record'];
 
 /** Le preferenze sono salvate come testo: le si legge con tolleranza (valori sconosciuti = predefiniti). */
 export function leggiPrefVoce(get: (k: string, d: string) => string): PrefVoce {
@@ -109,4 +110,11 @@ export function prossimiAnnunci(prec: StatoAnnunci | null, i: Istantanea, p: Pre
   // Se nel frattempo è cambiata la frequenza nelle impostazioni, si riparte a contare senza annunciare.
   if (prec.ogni === p.ogni && stato.traguardo > prec.traguardo && stato.traguardo > 0) frasi.push(frasePeriodica(i, p));
   return { frasi, stato };
+}
+
+/** "Nuovo record personale! Km più veloce: 5 minuti e 2 secondi." */
+export function fraseRecord(r: NuovoRecord): string {
+  const c = CATEGORIE.find((x) => x.c === r.cat)!;
+  const valore = c.tempo || r.cat === 'durata' ? diDurata(r.valore) : r.cat === 'salita' ? `${Math.round(r.valore)} metri` : diDistanza(r.valore);
+  return `Nuovo record personale! ${c.nome}: ${valore}.`;
 }

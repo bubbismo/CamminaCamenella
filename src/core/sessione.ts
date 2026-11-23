@@ -47,7 +47,8 @@ export async function termina(id: number) {
     distance_m: s.distanzaM,
   });
   // Dislivello, tempo in movimento e calorie: filtro locale subito, correzione col terreno (se attiva) in secondo piano.
-  await elaboraCamminata(id, { saltaRete: true });
+  // Un errore nei calcoli non deve mai bloccare lo Stop: la camminata è già salvata e si può ricalcolare.
+  try { await elaboraCamminata(id, { saltaRete: true }); } catch (e) { console.warn('elaborazione non riuscita', e); }
   elaboraCamminata(id).catch(() => {});
 }
 

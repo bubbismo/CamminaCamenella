@@ -34,6 +34,8 @@ function getDb() {
       try { await db.execAsync('ALTER TABLE walks ADD COLUMN altimetria TEXT'); } catch {}
       try { await db.execAsync('ALTER TABLE walks ADD COLUMN moving_ms INTEGER'); } catch {}
       try { await db.execAsync('ALTER TABLE walks ADD COLUMN pause_manuali TEXT'); } catch {}
+      try { await db.execAsync('ALTER TABLE walks ADD COLUMN tipo TEXT'); } catch {}
+      try { await db.execAsync('ALTER TABLE walks ADD COLUMN prestazioni TEXT'); } catch {}
       await db.execAsync('PRAGMA foreign_keys = ON;');
       return db;
     })();
@@ -42,7 +44,7 @@ function getDb() {
 }
 
 const COLONNE = ['ended_at', 'status', 'paused_since', 'paused_total_ms', 'distance_m', 'ascent_m',
-  'descent_m', 'active_ms', 'calories', 'rpe', 'notes', 'altimetria', 'moving_ms', 'pause_manuali'];
+  'descent_m', 'active_ms', 'calories', 'rpe', 'notes', 'altimetria', 'moving_ms', 'pause_manuali', 'tipo', 'prestazioni'];
 
 export async function nuovaCamminata(startedAt: number): Promise<number> {
   const db = await getDb();
@@ -119,10 +121,10 @@ export async function importaCamminata(w: Omit<Camminata, 'id'>, pts: Punto[]): 
   let id = 0;
   await db.withTransactionAsync(async () => {
     const r = await db.runAsync(
-      `INSERT INTO walks (started_at, ended_at, status, paused_since, paused_total_ms, distance_m, ascent_m, descent_m, active_ms, calories, rpe, notes, altimetria, moving_ms, pause_manuali)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      `INSERT INTO walks (started_at, ended_at, status, paused_since, paused_total_ms, distance_m, ascent_m, descent_m, active_ms, calories, rpe, notes, altimetria, moving_ms, pause_manuali, tipo, prestazioni)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       w.started_at, w.ended_at, w.status, w.paused_since, w.paused_total_ms ?? 0, w.distance_m ?? 0, w.ascent_m ?? 0, w.descent_m ?? 0,
-      w.active_ms ?? 0, w.calories, w.rpe, w.notes, w.altimetria ?? null, w.moving_ms ?? null, w.pause_manuali ?? null);
+      w.active_ms ?? 0, w.calories, w.rpe, w.notes, w.altimetria ?? null, w.moving_ms ?? null, w.pause_manuali ?? null, w.tipo ?? null, w.prestazioni ?? null);
     id = r.lastInsertRowId;
     for (const p of pts) {
       await db.runAsync('INSERT INTO points (walk_id,t,lat,lon,alt,acc,speed,gap,alt_acc) VALUES (?,?,?,?,?,?,?,?,?)',

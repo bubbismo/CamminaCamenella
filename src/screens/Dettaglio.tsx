@@ -19,6 +19,8 @@ import { TabellaParziali } from '../Parziali';
 import { ProfiloAltimetrico } from '../ProfiloAltimetrico';
 import { leggiSoglie } from '../core/pendenze';
 import { leggiPref } from '../preferenze';
+import { TIPI } from '../core/record';
+import { aggiorna } from '../archivio';
 import { creaGpx, nomeFileGpx } from '../core/gpx';
 import { salvaFile } from '../file';
 import type { Punto } from '../core/tipi';
@@ -62,6 +64,19 @@ export default function Dettaglio({ route, navigation }: any) {
     <ScrollView style={{ backgroundColor: colori.crema }} contentContainerStyle={{ padding: 14 }}>
       <Text style={s.titolo}>Bravo/a! 🎉</Text>
       <Text style={s.data}>{new Date(w.started_at).toLocaleString('it-IT', { dateStyle: 'full', timeStyle: 'short' })}</Text>
+      <View style={{ flexDirection: 'row', marginBottom: 10, alignItems: 'center' }}>
+        {TIPI.map((t) => {
+          const on = (w.tipo ?? 'camminata') === t.v;
+          return (
+            <Pressable key={t.v} accessibilityRole="button" accessibilityState={{ selected: on }}
+              onPress={async () => { if (!on) { await aggiorna(w.id, { tipo: t.v }); setW({ ...w, tipo: t.v }); } }}
+              style={[s.tipo, on && s.tipoOn]}>
+              <Text style={[s.tipoT, on && { color: '#fff' }]}>{t.icona} {t.t}</Text>
+            </Pressable>
+          );
+        })}
+        <Text style={s.tipoNota}>vale per i record</Text>
+      </View>
       <Mappa punti={pts} altezza={300} />
       <View style={s.griglia}>
         <Dato etichetta="Tempo trascorso" valore={formatDurata((w.ended_at ?? w.started_at) - w.started_at)} />
@@ -143,4 +158,8 @@ const s = StyleSheet.create({
   data: { fontSize: 16, color: colori.testoChiaro, marginBottom: 10 },
   avviso: { color: colori.testo, backgroundColor: colori.giallo, borderRadius: 12, padding: 12, marginTop: 14 },
   griglia: { flexDirection: 'row', flexWrap: 'wrap' },
+  tipo: { backgroundColor: colori.bianco, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 14, marginRight: 8 },
+  tipoOn: { backgroundColor: colori.rosso },
+  tipoT: { fontSize: 15, fontWeight: '700', color: colori.rossoScuro },
+  tipoNota: { fontSize: 12, color: colori.testoChiaro, flexShrink: 1 },
 });

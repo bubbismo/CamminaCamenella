@@ -6,6 +6,7 @@ import { colori } from '../theme';
 import { camminataInCorso, elencoCamminate } from '../archivio';
 import { richiediPermessi, sfondoPossibile, staTracciando } from '../tracking';
 import { sbloccaVoce } from '../voce';
+import { vaiDopoStop } from '../dopoStop';
 import { avvia, pulisciVuote, riprendiDopoInterruzione, scarta, termina } from '../core/sessione';
 import { formatDistanza } from '../core/geo';
 import { useDialogo } from '../dialogo';
@@ -53,7 +54,7 @@ export default function Home({ navigation }: any) {
           titolo: 'Corsa interrotta', messaggio: 'La corsa si è fermata (telefonata, cambio di app o schermo spento). Vuoi riprenderla? Il tratto senza GPS verrà collegato con una linea dritta e segnato come stimato.',
           bottoni: [
             { testo: 'Riprendi', onPress: async () => { sbloccaVoce(); await riprendiDopoInterruzione(w.id); navigation.navigate('Attivita'); } },
-            { testo: 'Termina e salva', stile: 'secondario', onPress: async () => { await termina(w.id); navigation.navigate('Fatica', { id: w.id }); } },
+            { testo: 'Termina e salva', stile: 'secondario', onPress: async () => { await termina(w.id); await vaiDopoStop(navigation, w.id, false); } },
             { testo: 'Scarta', stile: 'pericolo', onPress: async () => { await scarta(w.id); controlla(); } },
           ],
         });
@@ -122,6 +123,7 @@ export default function Home({ navigation }: any) {
         <Bottone testo="📖 Camminate" onPress={() => navigation.navigate('Storico')} colore={colori.rossoScuro} style={{ flex: 1, marginRight: 6 }} />
         <Bottone testo="📊 Statistiche" onPress={() => navigation.navigate('Statistiche')} colore={colori.rossoScuro} style={{ flex: 1, marginLeft: 6 }} />
       </View>
+      <Bottone testo="🏆 I miei record" onPress={() => navigation.navigate('Record')} colore={colori.rossoScuro} style={{ marginTop: 10 }} />
     </View>
   );
 }

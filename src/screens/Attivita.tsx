@@ -12,9 +12,12 @@ import { statoGps } from '../tracking';
 import { Mappa } from '../Mappa';
 import type { Punto } from '../core/tipi';
 import { calcolaParziali } from '../core/parziali';
-import { leggiPrefVoce, prossimiAnnunci, StatoAnnunci } from '../core/annunci';
+import { fraseRecord, leggiPrefVoce, prossimiAnnunci, StatoAnnunci } from '../core/annunci';
+import { calcolaPrestazioni, nuoviRecord, tipoAutomatico, Uscita } from '../core/record';
+import { uscite } from '../core/recordServizio';
 import { leggiPref, scriviPref } from '../preferenze';
 import { parla, sbloccaVoce, zittisci } from '../voce';
+import { vaiDopoStop } from '../dopoStop';
 
 // Schermata di corsa: sfondo nero (risparmio batteria su OLED), solo numeri essenziali.
 const GRIGIO = '#9A9A9A';
@@ -32,6 +35,11 @@ export default function Attivita({ navigation }: any) {
   const [gps, setGps] = useState<{ acc: number | null; t: number | null; errore: string | null }>({ acc: null, t: null, errore: null });
   const [voce, setVoce] = useState(leggiPref('voce', '1') === '1');
   const annunci = useRef<StatoAnnunci | null>(null);
+  // record: le uscite passate si leggono una volta; ogni categoria si annuncia una volta sola per uscita
+  const passate = useRef<Uscita[] | null>(null);
+  const giaDetti = useRef(new Set<string>());
+  const ultimoControllo = useRef(0);
+  useEffect(() => { uscite().then((u) => { passate.current = u; }).catch(() => {}); }, []);
 
   useEffect(() => {
     let vivo = true;
@@ -57,6 +65,18 @@ export default function Attivita({ navigation }: any) {
         }, pv);
         annunci.current = r.stato;
         for (const f of r.frasi) parla(f, pv.volume);
+        // Nuovi record durante la corsa (ogni 5 s, dopo i primi 500 m per capire se è camminata o corsa)
+        const dist = statistiche(pp).distanzaM;
+        if (pv.attiva && pv.dati.includes('record') && passate.current && dist >= 500 && Date.now() - ultimoControllo.current > 5000) {
+          ultimoControllo.current = Date.now();
+          const p = calcolaPrestazioni(pp, { soste: mov.soste, durataMs: mov.movimentoMs, salitaM: al.salita, inizio: c.started_at });
+          const u: Uscita = { id: c.id, started_at: c.started_at, tipo: tipoAutomatico(p), p };
+          for (const nr of nuoviRecord(passate.current, u)) {
+            if (giaDetti.current.has(nr.cat)) continue;
+            giaDetti.current.add(nr.cat);
+            parla(fraseRecord(nr), pv.volume);
+          }
+        }
       }
     };
     giro();
@@ -109,7 +129,7 @@ export default function Attivita({ navigation }: any) {
         <BottonePressioneLunga durataMs={1000} colore="#3A3000" testoColore="#FFD23F" style={{ flex: 1, marginRight: 8 }}
           testo={inPausa ? '▶ Riprendi' : '⏸ Pausa'} onConferma={() => (inPausa ? riprendi(w.id) : pausa(w.id))} />
         <BottonePressioneLunga durataMs={2000} colore="#4A0A0A" testoColore="#FF6B6B" style={{ flex: 1, marginLeft: 8 }}
-          testo="■ STOP" onConferma={async () => { await termina(w.id); navigation.replace('Fatica', { id: w.id }); }} />
+          testo="■ STOP" onConferma={async () => { await termina(w.id); await vaiDopoStop(navigation, w.id); }} />
       </View>
     </View>
   );
