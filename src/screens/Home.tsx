@@ -5,6 +5,7 @@ import { Bottone } from '../ui';
 import { colori } from '../theme';
 import { camminataInCorso, elencoCamminate } from '../archivio';
 import { richiediPermessi, sfondoPossibile, staTracciando } from '../tracking';
+import { sbloccaVoce } from '../voce';
 import { avvia, pulisciVuote, riprendiDopoInterruzione, scarta, termina } from '../core/sessione';
 import { formatDistanza } from '../core/geo';
 import { useDialogo } from '../dialogo';
@@ -51,7 +52,7 @@ export default function Home({ navigation }: any) {
         dialogo({
           titolo: 'Corsa interrotta', messaggio: 'La corsa si è fermata (telefonata, cambio di app o schermo spento). Vuoi riprenderla? Il tratto senza GPS verrà collegato con una linea dritta e segnato come stimato.',
           bottoni: [
-            { testo: 'Riprendi', onPress: async () => { await riprendiDopoInterruzione(w.id); navigation.navigate('Attivita'); } },
+            { testo: 'Riprendi', onPress: async () => { sbloccaVoce(); await riprendiDopoInterruzione(w.id); navigation.navigate('Attivita'); } },
             { testo: 'Termina e salva', stile: 'secondario', onPress: async () => { await termina(w.id); navigation.navigate('Fatica', { id: w.id }); } },
             { testo: 'Scarta', stile: 'pericolo', onPress: async () => { await scarta(w.id); controlla(); } },
           ],
@@ -72,6 +73,7 @@ export default function Home({ navigation }: any) {
   const impostazioni = () => { if (Platform.OS !== 'web') Linking.openSettings(); };
 
   const start = async () => {
+    sbloccaVoce(); // Safari su iPhone: la voce si può usare solo se "sbloccata" da un tocco
     if (occupato.current) return;
     if (!inCorso && !pesoConfigurato() && leggiPref('peso_saltato', '0') !== '1') {
       dialogo({ titolo: 'Qual è il tuo peso?', messaggio: 'Serve una volta sola per stimare le calorie. Resta sul telefono e lo puoi cambiare quando vuoi nelle impostazioni.',

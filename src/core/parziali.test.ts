@@ -55,6 +55,14 @@ describe('parziali per km', () => {
     expect(p[1].salita).toBeLessThan(5);
   });
 
+  it('primo punto GPS con orario prima dello Start: si conta dallo Start', () => {
+    const pts = traccia(1040, () => 1).map((p) => ({ ...p, t: p.t + 5000 }));
+    pts[0].t = 0; // posizione "vecchia" di 5 s prima
+    const p = calcolaParziali(pts, { inizio: 5000 });
+    expect(p[0].ms / 1000).toBeCloseTo(1000, -1);
+    expect(calcolaParziali(pts)[0].ms / 1000).toBeGreaterThan(1004);
+  });
+
   it('casi limite', () => {
     expect(calcolaParziali([])).toEqual([]);
     expect(calcolaParziali(traccia(30, () => 1))).toEqual([]);       // meno di 50 m: niente

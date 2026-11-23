@@ -44,6 +44,8 @@ export function calcolaParziali(pts: Punto[], o: {
   /** curva altimetrica: distanze (m) e quote corrispondenti (es. campioni e quote di calcolaAltimetria) */
   profilo?: { d: number[]; quote: number[] };
   passoM?: number;
+  /** Start: il primo punto GPS può avere un orario di qualche secondo prima (posizione già nota) */
+  inizio?: number;
 } = {}): Parziale[] {
   const passo = o.passoM ?? 1000;
   const soste = o.soste ?? [];
@@ -62,13 +64,13 @@ export function calcolaParziali(pts: Punto[], o: {
   };
 
   const out: Parziale[] = [];
-  let da = 0, tDa = pts[0].t;
+  let da = 0, tDa = Math.max(pts[0].t, o.inizio ?? -Infinity);
   for (let n = 1; da < tot; n++) {
     const a = Math.min(n * passo, tot);
     const metri = a - da;
     const completo = a === n * passo;
     if (!completo && metri < MIN_ULTIMO_M) break;
-    const tA = istante(a);
+    const tA = Math.max(istante(a), tDa);
     const ms = Math.max(0, tA - tDa - sovrapposizione(tDa, tA, soste));
     const dz = o.profilo && o.profilo.d.length > 1 ? dislivello(da, a, o.profilo.d, o.profilo.quote) : { salita: 0, discesa: 0 };
     out.push({ n, daM: da, aM: a, metri, ms, passoSKm: metri > 0 ? (ms / 1000) / (metri / 1000) : 0, ...dz, completo });

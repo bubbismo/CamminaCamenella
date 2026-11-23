@@ -45,7 +45,7 @@ export default function Dettaglio({ route, navigation }: any) {
     const v = velocitaKmh(r.campioni);
     const soste = w ? movimentoDi(w, pts).soste : [];
     return {
-      parziali: calcolaParziali(pts, { soste, profilo: { d: r.campioni.map((c) => c.d), quote: r.quote } }),
+      parziali: calcolaParziali(pts, { soste, inizio: w?.started_at, profilo: { d: r.campioni.map((c) => c.d), quote: r.quote } }),
       quota: r.campioni.map((c, k) => ({ x: c.d / 1000, y: r.quote[k] })),
       vel: r.campioni.map((c, k) => ({ x: c.d / 1000, y: v[k] })),
     };

@@ -12,6 +12,8 @@ import { creaBackup, giorniDallUltimoBackup, ripristinaBackup, segnaBackupFatto 
 import { salvaFile, scegliFileTesto } from '../file';
 import { riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
 import { SOGLIA_KMH_PREDEFINITA } from '../core/movimento';
+import { DATI_VOCE, DatoVoce, FREQUENZE, frasePeriodica, leggiPrefVoce, VOLUMI } from '../core/annunci';
+import { parla, sbloccaVoce, statoVoce } from '../voce';
 
 const AUTOPAUSA = [
   { v: '0', t: 'Spenta' },
@@ -67,6 +69,15 @@ export default function Impostazioni({ navigation }: any) {
   const pesoOk = peso === '' || pesoValido(pesoNum);
   const [rete, setRete] = useState(leggiPref('rete', '0') === '1');
   const [soglia, setSoglia] = useState(leggiPref('soglia', String(SOGLIA_PREDEFINITA_M)));
+  const [pv, setPv] = useState(leggiPrefVoce(leggiPref));
+  const aggiornaVoce = (k: string, v: string) => { scriviPref(k, v); setPv(leggiPrefVoce(leggiPref)); };
+  const statoV = statoVoce();
+  const provaVoce = () => {
+    sbloccaVoce();
+    const p = leggiPrefVoce(leggiPref);
+    parla(frasePeriodica({ distanzaM: 2000, movimentoMs: 24 * 60000 + 10000, salitaM: 85, fermo: false, pausa: false,
+      parziali: [{ n: 2, daM: 1000, aM: 2000, metri: 1000, ms: 716000, passoSKm: 716, salita: 40, discesa: 0, completo: true }] }, p), p.volume);
+  };
   const [autopausa, setAutopausa] = useState(leggiPref('autopausa', String(SOGLIA_KMH_PREDEFINITA)));
   const descrAutopausa = autopausa === '0'
     ? 'Il tempo scorre sempre, finché non premi Pausa.'
@@ -112,6 +123,48 @@ export default function Impostazioni({ navigation }: any) {
         <Text style={s.privacy}>🔒 Cosa viene inviato: l'app scarica da AWS alcune "tessere" di terreno (ognuna copre circa 2 km) e legge le quote sul tuo telefono, quindi i tuoi punti non partono. Il servizio vede soltanto la zona approssimativa e il tuo indirizzo IP. Se le tessere non sono disponibili, può usare Open-Meteo: in quel caso partono le coordinate dei punti ricampionati (circa uno ogni 25 m), senza orari né nome. Spento, tutto resta sul telefono.</Text>
       </View>
       <View style={s.card}>
+        <View style={s.riga}>
+          <Text style={s.titolo}>Annunci vocali</Text>
+          <Switch value={pv.attiva} trackColor={{ true: colori.rosso, false: '#ccc' }} thumbColor="#fff"
+            onValueChange={(v) => { aggiornaVoce('voce', v ? '1' : '0'); if (v) sbloccaVoce(); }} />
+        </View>
+        <Text style={s.testo}>Durante la camminata una voce ti dice a che punto sei, senza guardare il telefono. Se ti disturba (es. in montagna) spegnila qui, oppure al volo con 🔊 nella schermata di corsa.</Text>
+        {pv.attiva && <>
+          <Text style={s.sottotitolo}>Quando</Text>
+          <View style={s.chips}>
+            {FREQUENZE.map(({ v, t }) => (
+              <Pressable key={v} onPress={() => aggiornaVoce('voce_ogni', v)} style={[s.chip, s.chipM, pv.ogni === v && s.chipOn]}>
+                <Text style={[s.chipT, pv.ogni === v && { color: '#fff' }]}>{t}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <Text style={s.sottotitolo}>Cosa dire</Text>
+          <View style={s.chips}>
+            {DATI_VOCE.map(({ v, t }) => {
+              const on = pv.dati.includes(v);
+              const nuovi: DatoVoce[] = on ? pv.dati.filter((d) => d !== v) : [...pv.dati, v];
+              return (
+                <Pressable key={v} onPress={() => aggiornaVoce('voce_dati', nuovi.join(','))} style={[s.chip, s.chipM, on && s.chipOn]}>
+                  <Text style={[s.chipT, on && { color: '#fff' }]}>{on ? '✓ ' : ''}{t}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={s.sottotitolo}>Volume</Text>
+          <View style={s.chips}>
+            {VOLUMI.map(({ v, t }) => (
+              <Pressable key={v} onPress={() => aggiornaVoce('voce_volume', String(v))} style={[s.chip, s.chipM, pv.volume === v && s.chipOn]}>
+                <Text style={[s.chipT, pv.volume === v && { color: '#fff' }]}>{t}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <Pressable onPress={provaVoce} style={[s.chip, s.chipM, { alignSelf: 'flex-start', marginTop: 4 }]}><Text style={s.chipT}>🔊 Prova la voce</Text></Pressable>
+          {statoV === 'no' && <Text style={[s.testo, { color: colori.rosso }]}>⚠️ Questo browser non ha la sintesi vocale.</Text>}
+          {statoV === 'nessuna_it' && <Text style={[s.testo, { color: colori.rosso }]}>⚠️ Su questo dispositivo non c'è una voce italiana installata: per non mandare il testo a servizi esterni, l'app resta in silenzio. Puoi aggiungerne una nelle impostazioni del telefono (Sintesi vocale / Contenuti letti ad alta voce).</Text>}
+          <Text style={s.privacy}>🔒 Le frasi le legge la voce del telefono, senza rete. Su iPhone la voce non si sente con il telefono in modalità silenziosa (interruttore laterale), e il volume dipende anche dai tasti del telefono. Gli annunci funzionano con l'app aperta e lo schermo acceso, come il GPS. Con gli auricolari Bluetooth collegati, la voce esce lì.</Text>
+        </>}
+      </View>
+      <View style={s.card}>
         <Text style={s.titolo}>Pausa automatica</Text>
         <Text style={s.testo}>Ai semafori o quando ti fermi a guardare il panorama, il cronometro si ferma da solo. Velocità media, passo e calorie contano solo il tempo in movimento.</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
@@ -151,5 +204,8 @@ const s = StyleSheet.create({
   credits: { fontSize: 12, color: colori.testoChiaro, textAlign: 'center', marginTop: 6, marginBottom: 20 },
   chip: { backgroundColor: colori.crema, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 14, marginRight: 8 },
   chipOn: { backgroundColor: colori.rosso },
+  chipM: { marginBottom: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 },
+  sottotitolo: { fontSize: 15, fontWeight: '800', color: colori.testo, marginTop: 12 },
   chipT: { fontSize: 16, fontWeight: '700', color: colori.rossoScuro },
 });

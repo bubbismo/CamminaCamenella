@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import { BottonePressioneLunga } from '../ui';
@@ -11,6 +11,10 @@ import { pausa, riprendi, termina } from '../core/sessione';
 import { statoGps } from '../tracking';
 import { Mappa } from '../Mappa';
 import type { Punto } from '../core/tipi';
+import { calcolaParziali } from '../core/parziali';
+import { leggiPrefVoce, prossimiAnnunci, StatoAnnunci } from '../core/annunci';
+import { leggiPref, scriviPref } from '../preferenze';
+import { parla, sbloccaVoce, zittisci } from '../voce';
 
 // Schermata di corsa: sfondo nero (risparmio batteria su OLED), solo numeri essenziali.
 const GRIGIO = '#9A9A9A';
@@ -26,6 +30,8 @@ export default function Attivita({ navigation }: any) {
   const [mostraMappa, setMostraMappa] = useState(false);
   const [ora, setOra] = useState(Date.now());
   const [gps, setGps] = useState<{ acc: number | null; t: number | null; errore: string | null }>({ acc: null, t: null, errore: null });
+  const [voce, setVoce] = useState(leggiPref('voce', '1') === '1');
+  const annunci = useRef<StatoAnnunci | null>(null);
 
   useEffect(() => {
     let vivo = true;
@@ -42,6 +48,15 @@ export default function Attivita({ navigation }: any) {
           movimentoMs: mov.movimentoMs, fermo: mov.fermoOra && c.status === 'recording' && pp.length > 0,
         });
         setGps(await statoGps(c.id));
+        // Annunci vocali (solo con la schermata aperta: sul web è comunque l'unico modo di tracciare)
+        const pv = leggiPrefVoce(leggiPref);
+        const r = prossimiAnnunci(annunci.current, {
+          distanzaM: statistiche(pp).distanzaM, movimentoMs: mov.movimentoMs, salitaM: al.salita,
+          fermo: mov.fermoOra && c.status === 'recording' && pp.length > 0, pausa: c.status === 'paused',
+          parziali: pv.attiva && pv.ogni === 'km' ? calcolaParziali(pp, { soste: mov.soste, inizio: c.started_at }) : [],
+        }, pv);
+        annunci.current = r.stato;
+        for (const f of r.frasi) parla(f, pv.volume);
       }
     };
     giro();
@@ -78,9 +93,18 @@ export default function Attivita({ navigation }: any) {
         <Text style={s.sec}>Passo {formatPasso(st.distanzaM, tempoMs)} min/km   ▲ {Math.round(st.salitaM)} m   ▼ {Math.round(st.discesaM)} m</Text>
         {st.kcal != null && <Text style={s.sec}>🔥 ≈ {Math.round(st.kcal)} kcal (stima)</Text>}
       </View>
-      <Pressable onPress={() => setMostraMappa((v) => !v)} style={s.mappaBtn}>
-        <Text style={{ color: GRIGIO, fontSize: 15 }}>{mostraMappa ? '🗺 Nascondi mappa (risparmi batteria)' : '🗺 Mostra mappa'}</Text>
-      </Pressable>
+      <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+        <Pressable onPress={() => setMostraMappa((v) => !v)} style={s.mappaBtn}>
+          <Text style={{ color: GRIGIO, fontSize: 15 }}>{mostraMappa ? '🗺 Nascondi mappa' : '🗺 Mostra mappa'}</Text>
+        </Pressable>
+        <Pressable accessibilityLabel={voce ? 'Spegni la voce' : 'Accendi la voce'} style={s.mappaBtn}
+          onPress={() => {
+            const v = !voce; setVoce(v); scriviPref('voce', v ? '1' : '0');
+            if (v) { sbloccaVoce(); parla('Voce accesa.', leggiPrefVoce(leggiPref).volume); } else zittisci();
+          }}>
+          <Text style={{ color: GRIGIO, fontSize: 15 }}>{voce ? '🔊 Voce' : '🔇 Voce spenta'}</Text>
+        </Pressable>
+      </View>
       <View style={s.riga}>
         <BottonePressioneLunga durataMs={1000} colore="#3A3000" testoColore="#FFD23F" style={{ flex: 1, marginRight: 8 }}
           testo={inPausa ? '▶ Riprendi' : '⏸ Pausa'} onConferma={() => (inPausa ? riprendi(w.id) : pausa(w.id))} />

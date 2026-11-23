@@ -7,7 +7,7 @@ Esiste in due versioni che condividono lo stesso codice:
 - **Web app (PWA)** per iPhone e Android: si apre da un link e si aggiunge alla schermata Home.
 - **App Android (APK)**: tracciamento GPS anche con lo schermo spento.
 
-> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. Avatar, icona e schermata iniziale. Backup ed esportazione GPX. Pausa automatica, parziali per km. In arrivo: annunci vocali, profilo altimetrico colorato, record personali, pianificazione del percorso.
+> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. Avatar, icona e schermata iniziale. Backup ed esportazione GPX. Pausa automatica, parziali per km, annunci vocali. In arrivo: profilo altimetrico colorato, record personali, pianificazione del percorso.
 
 ## Usare la web app
 
@@ -35,6 +35,12 @@ Quando ti fermi (semaforo, foto, panorama) per almeno 10 secondi, sullo schermo 
 
 ## Parziali per km
 Nel dettaglio di ogni camminata, la tabella *Parziali per km* mostra per ogni chilometro il passo (senza soste e pause), una barra (più lunga = più veloce) e il dislivello del km, preso dalla stessa curva di quota corretta del dislivello totale. Il km più veloce (🐇) e il più lento (🐢) sono evidenziati; l'ultimo tratto incompleto mostra il passo equivalente. Il momento in cui si passa ogni km è interpolato tra i punti GPS.
+
+## Annunci vocali
+Durante la camminata una voce dice a che punto sei: ogni km (con il passo dell'ultimo km), ogni 500 m, oppure ogni 5 o 10 minuti, più "Pausa automatica" / "Si riparte". In ⚙️ Impostazioni si sceglie quando, cosa dire (tempo, distanza, passo, salita, pause) e il volume, e c'è *Prova la voce*. Si spengono del tutto con l'interruttore, oppure al volo col pulsante 🔊 nella schermata di corsa (comodo in montagna).
+- Usa solo voci italiane **installate sul telefono**: niente rete, il testo non esce dal dispositivo. Se il browser ha solo voci online, l'app resta in silenzio e lo segnala.
+- iPhone: in modalità silenziosa la voce non si sente; il volume dipende anche dai tasti del telefono. La voce si "sblocca" toccando Start.
+- Funziona con l'app aperta e lo schermo acceso (come il GPS della web app).
 
 ## Statistiche
 📊 *Statistiche* nella Home: distanza, calorie, numero di camminate, tempo e dislivello degli ultimi 7 giorni, 30 giorni o 12 mesi, con il confronto col periodo precedente e i grafici a barre di km e calorie (tocca una barra per il valore).
