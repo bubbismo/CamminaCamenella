@@ -3,6 +3,7 @@ import { aggiorna, camminata, camminateAperte, eliminaCamminata, nuovaCamminata,
 import { avviaTracciamento, fermaTracciamento } from '../tracking';
 import { statistiche } from './geo';
 import { elaboraCamminata } from './altimetria/servizio';
+import { pauseManuali } from './movimento';
 
 export async function avvia(): Promise<number> {
   const id = await nuovaCamminata(Date.now());
@@ -18,7 +19,11 @@ export async function pausa(id: number) {
 export async function riprendi(id: number) {
   const w = await camminata(id);
   if (w?.status === 'paused' && w.paused_since != null) {
-    await aggiorna(id, { status: 'recording', paused_total_ms: w.paused_total_ms + (Date.now() - w.paused_since), paused_since: null });
+    const ora = Date.now();
+    await aggiorna(id, {
+      status: 'recording', paused_total_ms: w.paused_total_ms + (ora - w.paused_since), paused_since: null,
+      pause_manuali: JSON.stringify(pauseManuali(w, ora)),
+    });
   }
 }
 
@@ -37,10 +42,11 @@ export async function termina(id: number) {
   const s = statistiche(await punti(id));
   await aggiorna(id, {
     status: 'done', ended_at: now, paused_since: null, paused_total_ms: pausato,
+    pause_manuali: JSON.stringify(pauseManuali(w, now)),
     active_ms: now - w.started_at - pausato,
     distance_m: s.distanzaM,
   });
-  // Dislivello: filtro locale subito, correzione col terreno (se attiva) in secondo piano.
+  // Dislivello, tempo in movimento e calorie: filtro locale subito, correzione col terreno (se attiva) in secondo piano.
   await elaboraCamminata(id, { saltaRete: true });
   elaboraCamminata(id).catch(() => {});
 }

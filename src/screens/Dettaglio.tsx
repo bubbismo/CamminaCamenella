@@ -12,6 +12,7 @@ import { leggiInfo } from '../core/altimetria/servizio';
 import { calcolaAltimetria, velocitaKmh } from '../core/altimetria';
 import { Grafico } from '../Grafico';
 import { faticaDi } from '../core/fatica';
+import { tempoMovimento } from '../core/movimento';
 import { creaGpx, nomeFileGpx } from '../core/gpx';
 import { salvaFile } from '../file';
 import type { Punto } from '../core/tipi';
@@ -47,7 +48,8 @@ export default function Dettaglio({ route, navigation }: any) {
   if (!w) return null;
   const info = leggiInfo(w);
   const fatica = faticaDi(w.rpe);
-  const kmh = w.active_ms > 0 ? (w.distance_m / 1000) / (w.active_ms / 3600000) : 0;
+  const mov = tempoMovimento(w);
+  const kmh = mov > 0 ? (w.distance_m / 1000) / (mov / 3600000) : 0;
   return (
     <ScrollView style={{ backgroundColor: colori.crema }} contentContainerStyle={{ padding: 14 }}>
       <Text style={s.titolo}>Bravo/a! 🎉</Text>
@@ -55,10 +57,10 @@ export default function Dettaglio({ route, navigation }: any) {
       <Mappa punti={pts} altezza={300} />
       <View style={s.griglia}>
         <Dato etichetta="Tempo trascorso" valore={formatDurata((w.ended_at ?? w.started_at) - w.started_at)} />
-        <Dato etichetta="Tempo attivo (senza pause)" valore={formatDurata(w.active_ms)} />
+        <Dato etichetta={w.moving_ms != null ? 'Tempo in movimento' : 'Tempo attivo (senza pause)'} valore={formatDurata(mov)} />
         <Dato etichetta="Distanza" valore={formatDistanza(w.distance_m)} />
         <Dato etichetta="Velocità media" valore={`${kmh.toFixed(1).replace('.', ',')} km/h`} />
-        <Dato etichetta="Passo medio (min/km)" valore={formatPasso(w.distance_m, w.active_ms)} />
+        <Dato etichetta="Passo medio (min/km)" valore={formatPasso(w.distance_m, mov)} />
         <Dato etichetta="Calorie (stima)" valore={w.calories != null ? `≈ ${Math.round(w.calories)} kcal` : '—'} />
         <Dato etichetta="Salita" valore={`▲ ${Math.round(w.ascent_m)} m`} />
         <Dato etichetta="Discesa" valore={`▼ ${Math.round(w.descent_m)} m`} />
@@ -77,6 +79,7 @@ export default function Dettaglio({ route, navigation }: any) {
         <Grafico titolo="Altitudine" unita="m" dati={grafici.quota} colore={colori.rosso} />
         <Grafico titolo="Velocità" unita="km/h" dati={grafici.vel} colore={colori.arancio} decimali={1} />
       </>}
+      {w.moving_ms != null && w.active_ms - w.moving_ms >= 60000 && <Text style={s.nota2}>⏸ Soste riconosciute in automatico: {formatDurata(w.active_ms - w.moving_ms)}. Non contano nel tempo in movimento, nel passo e nelle calorie.</Text>}
       {info && <BloccoDislivello info={info} />}
       {stimata > 0 && <Text style={s.avviso}>⚠️ Circa {formatDistanza(stimata)} di questo percorso sono una stima in linea retta: in quel tratto il GPS non ha registrato (app sospesa).</Text>}
       <Bottone testo="📤 Esporta GPX (per altre app)" colore={colori.arancio} style={{ marginTop: 16 }}

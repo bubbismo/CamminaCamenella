@@ -6,6 +6,7 @@ import {  elencoCamminate } from '../archivio';
 import type { Camminata } from '../core/tipi';
 import { formatDistanza, formatDurata } from '../core/geo';
 import { faticaDi } from '../core/fatica';
+import { tempoMovimento } from '../core/movimento';
 import { giorniDallUltimoBackup } from '../core/backupServizio';
 
 export default function Storico({ navigation }: any) {
@@ -24,7 +25,7 @@ export default function Storico({ navigation }: any) {
           style={[s.card, index === 0 && s.ultima]}>
           {index === 0 && <Text style={s.badge}>⭐ Ultima camminata</Text>}
           <Text style={s.data}>{new Date(item.started_at).toLocaleString('it-IT', { dateStyle: 'full', timeStyle: 'short' })}</Text>
-          <Text style={s.riga}>⏱ {formatDurata(item.active_ms)}   📏 {formatDistanza(item.distance_m)}</Text>
+          <Text style={s.riga}>⏱ {formatDurata(tempoMovimento(item))}   📏 {formatDistanza(item.distance_m)}</Text>
           {item.rpe != null && <Text style={[s.riga, { color: faticaDi(item.rpe)?.colore, fontWeight: '800' }]}>💪 Fatica {item.rpe}/10 · {faticaDi(item.rpe)?.titolo}</Text>}
           <Text style={s.riga}>▲ {Math.round(item.ascent_m)} m   ▼ {Math.round(item.descent_m)} m{item.calories != null ? `   🔥 ≈${Math.round(item.calories)} kcal` : ''}</Text>
         </Pressable>

@@ -11,6 +11,14 @@ import { leggiBackup, nomeFileBackup, riassunto } from '../core/backup';
 import { creaBackup, giorniDallUltimoBackup, ripristinaBackup, segnaBackupFatto } from '../core/backupServizio';
 import { salvaFile, scegliFileTesto } from '../file';
 import { riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
+import { SOGLIA_KMH_PREDEFINITA } from '../core/movimento';
+
+const AUTOPAUSA = [
+  { v: '0', t: 'Spenta' },
+  { v: '1', t: 'Sensibile' },
+  { v: '1.5', t: 'Normale' },
+  { v: '3', t: 'Corsa' },
+];
 
 export default function Impostazioni({ navigation }: any) {
   const avatar = leggiAvatar();
@@ -59,6 +67,10 @@ export default function Impostazioni({ navigation }: any) {
   const pesoOk = peso === '' || pesoValido(pesoNum);
   const [rete, setRete] = useState(leggiPref('rete', '0') === '1');
   const [soglia, setSoglia] = useState(leggiPref('soglia', String(SOGLIA_PREDEFINITA_M)));
+  const [autopausa, setAutopausa] = useState(leggiPref('autopausa', String(SOGLIA_KMH_PREDEFINITA)));
+  const descrAutopausa = autopausa === '0'
+    ? 'Il tempo scorre sempre, finché non premi Pausa.'
+    : `Se vai più piano di ${autopausa.replace('.', ',')} km/h per almeno 10 secondi, il tempo si ferma da solo e riparte quando riprendi a muoverti.`;
   return (
     <ScrollView style={{ backgroundColor: colori.crema }} contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
       <View style={s.card}>
@@ -98,6 +110,19 @@ export default function Impostazioni({ navigation }: any) {
         </View>
         <Text style={s.testo}>Il GPS sbaglia la quota di 10-20 m e il dislivello risulta gonfiato. Con questa opzione, a fine corsa, l'app scarica le quote del terreno e le usa per correggerlo.</Text>
         <Text style={s.privacy}>🔒 Cosa viene inviato: l'app scarica da AWS alcune "tessere" di terreno (ognuna copre circa 2 km) e legge le quote sul tuo telefono, quindi i tuoi punti non partono. Il servizio vede soltanto la zona approssimativa e il tuo indirizzo IP. Se le tessere non sono disponibili, può usare Open-Meteo: in quel caso partono le coordinate dei punti ricampionati (circa uno ogni 25 m), senza orari né nome. Spento, tutto resta sul telefono.</Text>
+      </View>
+      <View style={s.card}>
+        <Text style={s.titolo}>Pausa automatica</Text>
+        <Text style={s.testo}>Ai semafori o quando ti fermi a guardare il panorama, il cronometro si ferma da solo. Velocità media, passo e calorie contano solo il tempo in movimento.</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
+          {AUTOPAUSA.map(({ v, t }) => (
+            <Pressable key={v} onPress={() => { setAutopausa(v); scriviPref('autopausa', v); }} style={[s.chip, { marginBottom: 8 }, autopausa === v && s.chipOn]}>
+              <Text style={[s.chipT, autopausa === v && { color: '#fff' }]}>{t}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={s.testo}>{descrAutopausa}</Text>
+        <Text style={[s.testo, { color: colori.testoChiaro, fontSize: 14 }]}>Vale per le prossime camminate. La pausa manuale funziona sempre.</Text>
       </View>
       <View style={s.card}>
         <Text style={s.titolo}>Soglia del dislivello</Text>

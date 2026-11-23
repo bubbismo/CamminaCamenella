@@ -5,6 +5,7 @@ import { fondi } from './kalman';
 import { salitaDiscesa, salitaDiscesaGrezza } from './isteresi';
 import { Corrispondenza, fondiConProfilo } from './percorsi';
 import { calorieTratti, TrattoCal } from '../calorie';
+import { Intervallo, sovrapposizione } from '../movimento';
 
 export const SOGLIA_PREDEFINITA_M = 3;
 
@@ -60,13 +61,17 @@ export function dislivelloLive(pts: Punto[], soglia = SOGLIA_PREDEFINITA_M): SD 
   return { salita: r.salita, discesa: r.discesa };
 }
 
-/** Calorie stimate dal percorso: velocità e pendenza di ogni tratto da 25 m (quota già filtrata). */
-export function calorieDaRisultato(r: Pick<RisultatoAltimetria, 'campioni' | 'quote'>, pesoKg: number): number {
+/**
+ * Calorie stimate dal percorso: velocità e pendenza di ogni tratto da 25 m (quota già filtrata).
+ * Il tempo passato in sosta o in pausa (`soste`) si toglie dal tratto: conta solo il tempo in movimento.
+ */
+export function calorieDaRisultato(r: Pick<RisultatoAltimetria, 'campioni' | 'quote'>, pesoKg: number, soste: Intervallo[] = []): number {
   const tratti: TrattoCal[] = [];
   for (let i = 1; i < r.campioni.length; i++) {
+    const a = r.campioni[i - 1].t, b = r.campioni[i].t;
     tratti.push({
       metri: r.campioni[i].d - r.campioni[i - 1].d,
-      secondi: (r.campioni[i].t - r.campioni[i - 1].t) / 1000,
+      secondi: (b - a - sovrapposizione(a, b, soste)) / 1000,
       salitaM: r.quote[i] - r.quote[i - 1],
     });
   }

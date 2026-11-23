@@ -41,6 +41,7 @@ export async function nuovaCamminata(startedAt: number): Promise<number> {
   const w: Omit<Camminata, 'id'> = {
     started_at: startedAt, ended_at: null, status: 'recording', paused_since: null, paused_total_ms: 0,
     distance_m: 0, ascent_m: 0, descent_m: 0, active_ms: 0, calories: null, rpe: null, notes: null, altimetria: null,
+    moving_ms: null, pause_manuali: null,
   };
   return (await rich((await store('walks', true)).add(w))) as number;
 }

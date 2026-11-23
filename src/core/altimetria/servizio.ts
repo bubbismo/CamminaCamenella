@@ -3,11 +3,12 @@
 import { aggiorna, camminata, elencoCamminate, elencoPercorsi, punti, salvaPercorso } from '../../archivio';
 import { leggiPref } from '../../preferenze';
 import { pesoValido } from '../calorie';
-import type { Camminata } from '../tipi';
+import type { Camminata, Punto } from '../tipi';
 import { calcolaAltimetria, calorieDaRisultato, Fonte, SD, SOGLIA_PREDEFINITA_M } from './calcola';
 import { campiona } from './campiona';
 import { ottieniDem } from './dem';
 import { aggiornaProfilo, nuovoPercorso, trovaPercorso } from './percorsi';
+import { calcolaMovimento, OpzioniMovimento, pauseManuali, SOGLIA_KMH_PREDEFINITA } from '../movimento';
 
 export type StatoDem = 'no' | 'in_corso' | 'attesa' | 'ok';
 
@@ -41,6 +42,20 @@ export const sogliaConfigurata = () => {
   return Number.isFinite(s) && s >= 1 && s <= 10 ? s : SOGLIA_PREDEFINITA_M;
 };
 
+/** Pausa automatica: '0' = spenta, altrimenti la soglia in km/h. */
+export const autopausaConfigurata = (): Pick<OpzioniMovimento, 'attiva' | 'sogliaKmh'> => {
+  const v = leggiPref('autopausa', String(SOGLIA_KMH_PREDEFINITA));
+  const k = parseFloat(v);
+  if (v === '0' || !Number.isFinite(k) || k <= 0) return { attiva: false };
+  return { attiva: true, sogliaKmh: Math.min(10, Math.max(0.5, k)) };
+};
+
+/** Movimento di una camminata (in corso: fino a `ora`; conclusa: fino allo Stop). */
+export function movimentoDi(w: Camminata, pts: Punto[], ora = Date.now()) {
+  const fine = w.ended_at ?? (w.paused_since ?? ora);
+  return calcolaMovimento(pts, { ...autopausaConfigurata(), inizio: w.started_at, fine, manuali: pauseManuali(w, w.ended_at ?? ora) });
+}
+
 const inCorso = new Set<number>();
 
 /**
@@ -58,6 +73,7 @@ export async function elaboraCamminata(id: number, opz: { saltaRete?: boolean } 
     const soglia = sogliaConfigurata();
     const campioni = campiona(pts);
     const lunghezza = campioni.length ? campioni[campioni.length - 1].d : 0;
+    const mov = movimentoDi(w, pts);
 
     let demQuote = prec?.dem_quote && prec.dem_quote.length === campioni.length ? prec.dem_quote : undefined;
     let demSigma = prec?.dem_sigma ?? 6, demFonte = prec?.fonte_dem;
@@ -79,7 +95,7 @@ export async function elaboraCamminata(id: number, opz: { saltaRete?: boolean } 
         dem_quote: dem?.quote, dem_sigma: dem ? demSigma : undefined, in_profilo: inProfilo ?? giaInProfilo,
       };
       const peso = pesoConfigurato();
-      await aggiorna(id, { ascent_m: r.salita, descent_m: r.discesa, calories: peso ? calorieDaRisultato(r, peso) : null, altimetria: JSON.stringify({ ...info, peso_kg: peso ?? undefined }) });
+      await aggiorna(id, { ascent_m: r.salita, descent_m: r.discesa, moving_ms: Math.min(mov.movimentoMs, w.active_ms || mov.movimentoMs), calories: peso ? calorieDaRisultato(r, peso, mov.soste) : null, altimetria: JSON.stringify({ ...info, peso_kg: peso ?? undefined }) });
       return { r, c, info };
     };
 

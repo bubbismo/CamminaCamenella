@@ -11,4 +11,8 @@ export type Camminata = {
   calories: number | null; rpe: number | null; notes: string | null;
   /** JSON con l'esito dell'altimetria (fonte, valori alternativi, stato correzione DEM). Vedi core/altimetria/servizio.ts */
   altimetria?: string | null;
+  /** tempo in movimento (pausa automatica), null nelle corse registrate prima di questa funzione */
+  moving_ms?: number | null;
+  /** JSON [[inizio,fine],...] delle pause manuali */
+  pause_manuali?: string | null;
 };

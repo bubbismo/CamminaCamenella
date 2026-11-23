@@ -6,7 +6,7 @@ import { Camminata } from '../core/tipi';
 import { camminataInCorso, punti } from '../archivio';
 import { formatDistanza, formatDurata, formatPasso, statistiche } from '../core/geo';
 import { calcolaAltimetria, calorieDaRisultato } from '../core/altimetria';
-import { pesoConfigurato } from '../core/altimetria/servizio';
+import { movimentoDi, pesoConfigurato } from '../core/altimetria/servizio';
 import { pausa, riprendi, termina } from '../core/sessione';
 import { statoGps } from '../tracking';
 import { Mappa } from '../Mappa';
@@ -15,12 +15,13 @@ import type { Punto } from '../core/tipi';
 // Schermata di corsa: sfondo nero (risparmio batteria su OLED), solo numeri essenziali.
 const GRIGIO = '#9A9A9A';
 const GRIGIO_SCURO = '#555';
+// Su web il blocco dello schermo lo gestisce tracking.web.ts (wake lock con ripristino).
+const useSchermoAcceso = Platform.OS === 'web' ? () => {} : useKeepAwake;
 
 export default function Attivita({ navigation }: any) {
-  // Su web il blocco dello schermo lo gestisce tracking.web.ts (wake lock con ripristino).
-  if (Platform.OS !== 'web') useKeepAwake();
+  useSchermoAcceso();
   const [w, setW] = useState<Camminata | null>(null);
-  const [st, setSt] = useState<{ distanzaM: number; salitaM: number; discesaM: number; kcal: number | null }>({ distanzaM: 0, salitaM: 0, discesaM: 0, kcal: null });
+  const [st, setSt] = useState<{ distanzaM: number; salitaM: number; discesaM: number; kcal: number | null; movimentoMs: number | null; fermo: boolean }>({ distanzaM: 0, salitaM: 0, discesaM: 0, kcal: null, movimentoMs: null, fermo: false });
   const [pts, setPts] = useState<Punto[]>([]);
   const [mostraMappa, setMostraMappa] = useState(false);
   const [ora, setOra] = useState(Date.now());
@@ -32,7 +33,16 @@ export default function Attivita({ navigation }: any) {
       const c = await camminataInCorso();
       if (!vivo) return;
       setW(c); setOra(Date.now());
-      if (c) { const pp = await punti(c.id); setPts(pp); { const al = calcolaAltimetria(pp); const kg = pesoConfigurato(); setSt({ ...statistiche(pp), salitaM: al.salita, discesaM: al.discesa, kcal: kg ? calorieDaRisultato(al, kg) : null }); } setGps(await statoGps(c.id)); }
+      if (c) {
+        const pp = await punti(c.id); setPts(pp);
+        const al = calcolaAltimetria(pp), kg = pesoConfigurato(), mov = movimentoDi(c, pp);
+        setSt({
+          ...statistiche(pp), salitaM: al.salita, discesaM: al.discesa,
+          kcal: kg ? calorieDaRisultato(al, kg, mov.soste) : null,
+          movimentoMs: mov.movimentoMs, fermo: mov.fermoOra && c.status === 'recording' && pp.length > 0,
+        });
+        setGps(await statoGps(c.id));
+      }
     };
     giro();
     const t = setInterval(giro, 1000);
@@ -45,6 +55,8 @@ export default function Attivita({ navigation }: any) {
   const inPausa = w.status === 'paused';
   const fine = inPausa ? w.paused_since! : ora;
   const attivoMs = Math.max(0, fine - w.started_at - w.paused_total_ms);
+  // Tempo in movimento (si ferma da solo nelle soste); se la pausa automatica è spenta coincide col tempo attivo.
+  const tempoMs = st.movimentoMs != null ? Math.min(st.movimentoMs, attivoMs) : attivoMs;
 
   let stato = 'Cerco il segnale GPS…', coloreStato = '#E0A000';
   if (inPausa) { stato = '⏸ In pausa'; coloreStato = GRIGIO; }
@@ -60,9 +72,10 @@ export default function Attivita({ navigation }: any) {
       <Text style={[s.stato, { color: coloreStato }]}>{stato}</Text>
       {mostraMappa && <View style={{ marginTop: 10 }}><Mappa punti={pts} segui altezza={260} /></View>}
       <View style={{ flex: 1, justifyContent: 'center' }}>
-        <Text style={s.tempo}>{formatDurata(attivoMs)}</Text>
+        {st.fermo && <><Text style={s.autopausa}>IN PAUSA</Text><Text style={s.autopausaNota}>riparte da sola quando ti muovi</Text></>}
+        <Text style={s.tempo}>{formatDurata(tempoMs)}</Text>
         <Text style={s.km}>{formatDistanza(st.distanzaM)}</Text>
-        <Text style={s.sec}>Passo {formatPasso(st.distanzaM, attivoMs)} min/km   ▲ {Math.round(st.salitaM)} m   ▼ {Math.round(st.discesaM)} m</Text>
+        <Text style={s.sec}>Passo {formatPasso(st.distanzaM, tempoMs)} min/km   ▲ {Math.round(st.salitaM)} m   ▼ {Math.round(st.discesaM)} m</Text>
         {st.kcal != null && <Text style={s.sec}>🔥 ≈ {Math.round(st.kcal)} kcal (stima)</Text>}
       </View>
       <Pressable onPress={() => setMostraMappa((v) => !v)} style={s.mappaBtn}>
@@ -80,6 +93,8 @@ export default function Attivita({ navigation }: any) {
 
 const s = StyleSheet.create({
   c: { flex: 1, backgroundColor: '#000', padding: 16, paddingTop: 50 },
+  autopausa: { fontSize: 22, fontWeight: '800', color: '#FFD23F', textAlign: 'center', letterSpacing: 4, marginBottom: 4 },
+  autopausaNota: { fontSize: 14, color: GRIGIO_SCURO, textAlign: 'center', marginBottom: 6 },
   stato: { fontSize: 16, textAlign: 'center', fontWeight: '700' },
   tempo: { fontSize: 80, fontWeight: '800', color: GRIGIO, textAlign: 'center' },
   km: { fontSize: 56, fontWeight: '700', color: GRIGIO, textAlign: 'center' },

@@ -5,7 +5,7 @@ import type { Percorso } from './altimetria/percorsi';
 export const FORMATO = 'camminacamenella-backup';
 export const VERSIONE = 1;
 /** Preferenze salvate nel backup (peso, nome, avatar, impostazioni). */
-export const PREF_BACKUP = ['peso', 'nome', 'avatar', 'avatar_chiesto', 'peso_saltato', 'rete', 'soglia', 'mappa'];
+export const PREF_BACKUP = ['peso', 'nome', 'avatar', 'avatar_chiesto', 'peso_saltato', 'rete', 'soglia', 'mappa', 'autopausa'];
 
 export type CamminataBackup = Camminata & { punti: Punto[] };
 export type Backup = {

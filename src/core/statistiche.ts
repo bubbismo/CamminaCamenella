@@ -1,5 +1,6 @@
 // Statistiche per periodo: totali e valori giorno per giorno (o mese per mese), con confronto col periodo precedente.
 import type { Camminata } from './tipi';
+import { tempoMovimento } from './movimento';
 
 export type Periodo = 'settimana' | 'mese' | 'anno';
 export type Valori = { km: number; kcal: number; n: number; ore: number; salita: number };
@@ -11,7 +12,7 @@ const MESI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ot
 const vuoto = (): Valori => ({ km: 0, kcal: 0, n: 0, ore: 0, salita: 0 });
 const aggiungi = (v: Valori, w: Camminata) => {
   v.km += (w.distance_m || 0) / 1000; v.kcal += w.calories || 0; v.n += 1;
-  v.ore += (w.active_ms || 0) / 3600000; v.salita += w.ascent_m || 0;
+  v.ore += (tempoMovimento(w) || 0) / 3600000; v.salita += w.ascent_m || 0;
 };
 const mezzanotte = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
