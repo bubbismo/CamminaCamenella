@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import { BottonePressioneLunga } from '../ui';
 import { Camminata } from '../core/tipi';
@@ -7,6 +7,8 @@ import { camminataInCorso, punti } from '../archivio';
 import { formatDistanza, formatDurata, formatPasso, statistiche } from '../core/geo';
 import { pausa, riprendi, termina } from '../core/sessione';
 import { statoGps } from '../tracking';
+import { Mappa } from '../Mappa';
+import type { Punto } from '../core/tipi';
 
 // Schermata di corsa: sfondo nero (risparmio batteria su OLED), solo numeri essenziali.
 const GRIGIO = '#9A9A9A';
@@ -17,6 +19,8 @@ export default function Attivita({ navigation }: any) {
   if (Platform.OS !== 'web') useKeepAwake();
   const [w, setW] = useState<Camminata | null>(null);
   const [st, setSt] = useState({ distanzaM: 0, salitaM: 0, discesaM: 0 });
+  const [pts, setPts] = useState<Punto[]>([]);
+  const [mostraMappa, setMostraMappa] = useState(false);
   const [ora, setOra] = useState(Date.now());
   const [gps, setGps] = useState<{ acc: number | null; t: number | null; errore: string | null }>({ acc: null, t: null, errore: null });
 
@@ -26,7 +30,7 @@ export default function Attivita({ navigation }: any) {
       const c = await camminataInCorso();
       if (!vivo) return;
       setW(c); setOra(Date.now());
-      if (c) { setSt(statistiche(await punti(c.id))); setGps(await statoGps(c.id)); }
+      if (c) { const pp = await punti(c.id); setPts(pp); setSt(statistiche(pp)); setGps(await statoGps(c.id)); }
     };
     giro();
     const t = setInterval(giro, 1000);
@@ -52,11 +56,15 @@ export default function Attivita({ navigation }: any) {
   return (
     <View style={s.c}>
       <Text style={[s.stato, { color: coloreStato }]}>{stato}</Text>
+      {mostraMappa && <View style={{ marginTop: 10 }}><Mappa punti={pts} segui altezza={260} /></View>}
       <View style={{ flex: 1, justifyContent: 'center' }}>
         <Text style={s.tempo}>{formatDurata(attivoMs)}</Text>
         <Text style={s.km}>{formatDistanza(st.distanzaM)}</Text>
         <Text style={s.sec}>Passo {formatPasso(st.distanzaM, attivoMs)} min/km   ▲ {Math.round(st.salitaM)} m   ▼ {Math.round(st.discesaM)} m</Text>
       </View>
+      <Pressable onPress={() => setMostraMappa((v) => !v)} style={s.mappaBtn}>
+        <Text style={{ color: GRIGIO, fontSize: 15 }}>{mostraMappa ? '🗺 Nascondi mappa (risparmi batteria)' : '🗺 Mostra mappa'}</Text>
+      </Pressable>
       <View style={s.riga}>
         <BottonePressioneLunga durataMs={1000} colore="#3A3000" testoColore="#FFD23F" style={{ flex: 1, marginRight: 8 }}
           testo={inPausa ? '▶ Riprendi' : '⏸ Pausa'} onConferma={() => (inPausa ? riprendi(w.id) : pausa(w.id))} />
@@ -73,6 +81,7 @@ const s = StyleSheet.create({
   tempo: { fontSize: 80, fontWeight: '800', color: GRIGIO, textAlign: 'center' },
   km: { fontSize: 56, fontWeight: '700', color: GRIGIO, textAlign: 'center' },
   sec: { fontSize: 16, color: GRIGIO_SCURO, textAlign: 'center', marginTop: 16 },
+  mappaBtn: { alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 16 },
   riga: { flexDirection: 'row', paddingVertical: 12 },
   nota: { color: GRIGIO, fontSize: 20, textAlign: 'center', marginVertical: 30 },
 });
