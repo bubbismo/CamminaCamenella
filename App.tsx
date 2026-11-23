@@ -7,6 +7,7 @@ import Home from './src/screens/Home';
 import Attivita from './src/screens/Attivita';
 import Storico from './src/screens/Storico';
 import Dettaglio from './src/screens/Dettaglio';
+import AvatarEditor from './src/screens/AvatarEditor';
 import Fatica from './src/screens/Fatica';
 import Impostazioni from './src/screens/Impostazioni';
 import { DialogoProvider } from './src/dialogo';
@@ -23,6 +24,7 @@ export default function App() {
         <Stack.Screen name="Attivita" component={Attivita} options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="Storico" component={Storico} options={{ title: 'Le mie camminate' }} />
         <Stack.Screen name="Impostazioni" component={Impostazioni} options={{ title: 'Impostazioni' }} />
+        <Stack.Screen name="Avatar" component={AvatarEditor} options={{ title: 'Il tuo avatar' }} />
         <Stack.Screen name="Fatica" component={Fatica} options={{ title: 'Com\'è andata?', headerBackVisible: false, gestureEnabled: false }} />
         <Stack.Screen name="Dettaglio" component={Dettaglio} options={{ title: 'Dettaglio' }} />
       </Stack.Navigator>

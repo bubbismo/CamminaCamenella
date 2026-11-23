@@ -7,7 +7,7 @@ Esiste in due versioni che condividono lo stesso codice:
 - **Web app (PWA)** per iPhone e Android: si apre da un link e si aggiunge alla schermata Home.
 - **App Android (APK)**: tracciamento GPS anche con lo schermo spento.
 
-> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. In arrivo: avatar, esportazione GPX, pianificazione del percorso.
+> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. Avatar. In arrivo: esportazione GPX, pianificazione del percorso.
 
 ## Usare la web app
 
@@ -26,6 +26,9 @@ Indirizzo: **https://bubbismo.github.io/CamminaCamenella/**
 - Per non fermare la corsa per sbaglio in tasca, Pausa e Stop si attivano **tenendo premuto** (1 e 2 secondi).
 - I dati sono nel browser: se pulisci i dati di Safari/Chrome si perdono. (Una funzione di backup arriverà.)
 - La stima del dislivello è approssimativa (altitudine GPS smussata).
+
+## Avatar
+Al primo avvio l'app propone di creare un avatar (capelli, occhiali, barba, occhi, bocca, vestiti, colori, sfondo, più "Sorprendimi"). Si disegna **sul telefono** con [DiceBear](https://www.dicebear.com) e lo stile *Avataaars* di Pablo Stanley (uso libero, personale e commerciale): nessuna foto e nessun servizio esterno. Si modifica da ⚙️ Impostazioni o toccando l'avatar nella Home.
 
 ## Dislivello preciso (senza barometro)
 Il GPS sbaglia la quota di 10-20 m e, sommando il rumore, gonfia il dislivello. CamminaCamenella lo corregge in più modi (modulo `src/core/altimetria/`, comune a web e Android):

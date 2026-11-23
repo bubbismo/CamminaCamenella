@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { colori } from '../theme';
+import { Avatar } from '../Avatar';
+import { leggiAvatar } from '../core/avatar';
 import { leggiPref, scriviPref } from '../preferenze';
 import { SOGLIA_PREDEFINITA_M } from '../core/altimetria';
 import { PESO_MAX, PESO_MIN, pesoValido } from '../core/calorie';
 import { riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
 
-export default function Impostazioni() {
+export default function Impostazioni({ navigation }: any) {
+  const avatar = leggiAvatar();
   const [peso, setPeso] = useState(leggiPref('peso', ''));
   const [nome, setNome] = useState(leggiPref('nome', ''));
   const pesoNum = parseFloat(peso.replace(',', '.'));
@@ -15,6 +18,13 @@ export default function Impostazioni() {
   const [soglia, setSoglia] = useState(leggiPref('soglia', String(SOGLIA_PREDEFINITA_M)));
   return (
     <ScrollView style={{ backgroundColor: colori.crema }} contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+      <View style={s.card}>
+        <View style={s.riga}>
+          <Text style={s.titolo}>Il tuo avatar</Text>
+          <Pressable onPress={() => navigation.navigate('Avatar')}>{avatar ? <Avatar config={avatar} size={64} /> : <Text style={{ fontSize: 40 }}>🙂</Text>}</Pressable>
+        </View>
+        <Pressable onPress={() => navigation.navigate('Avatar')} style={[s.chip, { alignSelf: 'flex-start', marginTop: 10 }]}><Text style={s.chipT}>🎨 {avatar ? 'Modifica avatar' : 'Crea avatar'}</Text></Pressable>
+      </View>
       <View style={s.card}>
         <Text style={s.titolo}>Il tuo profilo</Text>
         <Text style={s.testo}>Peso corporeo (kg), serve per stimare le calorie. Si chiede una volta sola e resta sul telefono.</Text>
@@ -46,6 +56,7 @@ export default function Impostazioni() {
           ))}
         </View>
       </View>
+      <Text style={s.credits}>Avatar: stile Avataaars di Pablo Stanley, disegnato con DiceBear (offline). Mappe © OpenStreetMap, OpenTopoMap, SRTM. Quote: AWS Terrain Tiles.</Text>
     </ScrollView>
   );
 }
@@ -58,6 +69,7 @@ const s = StyleSheet.create({
   privacy: { fontSize: 14, color: colori.testoChiaro, marginTop: 10, backgroundColor: colori.crema, borderRadius: 12, padding: 10 },
   input: { borderWidth: 2, borderColor: '#E7D5C0', borderRadius: 14, padding: 12, fontSize: 18, marginTop: 8, color: colori.testo, backgroundColor: colori.crema },
   errore: { color: colori.rosso, marginTop: 6, fontSize: 14 },
+  credits: { fontSize: 12, color: colori.testoChiaro, textAlign: 'center', marginTop: 6, marginBottom: 20 },
   chip: { backgroundColor: colori.crema, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 14, marginRight: 8 },
   chipOn: { backgroundColor: colori.rosso },
   chipT: { fontSize: 16, fontWeight: '700', color: colori.rossoScuro },
