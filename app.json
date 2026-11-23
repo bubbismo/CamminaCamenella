@@ -24,6 +24,18 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "backgroundColor": "#E5202A"
+    "backgroundColor": "#E5202A",
+    "plugins": [
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "CamminaCamenella usa la posizione, anche con lo schermo spento, per registrare il tuo percorso.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      "expo-notifications"
+    ]
   }
 }

@@ -1,0 +1,34 @@
+import React, { useCallback, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { colori } from '../theme';
+import { Camminata, elencoCamminate } from '../db';
+import { formatDistanza, formatDurata } from '../geo';
+
+export default function Storico({ navigation }: any) {
+  const [lista, setLista] = useState<Camminata[]>([]);
+  useFocusEffect(useCallback(() => { elencoCamminate().then(setLista); }, []));
+  return (
+    <FlatList style={{ backgroundColor: colori.crema }} contentContainerStyle={{ padding: 14 }} data={lista}
+      keyExtractor={(w) => String(w.id)}
+      ListEmptyComponent={<Text style={s.vuoto}>Nessuna camminata ancora. Premi START! 🏃</Text>}
+      renderItem={({ item, index }) => (
+        <Pressable onPress={() => navigation.navigate('Dettaglio', { id: item.id })}
+          style={[s.card, index === 0 && s.ultima]}>
+          {index === 0 && <Text style={s.badge}>⭐ Ultima camminata</Text>}
+          <Text style={s.data}>{new Date(item.started_at).toLocaleString('it-IT', { dateStyle: 'full', timeStyle: 'short' })}</Text>
+          <Text style={s.riga}>⏱ {formatDurata(item.active_ms)}   📏 {formatDistanza(item.distance_m)}</Text>
+          <Text style={s.riga}>▲ {Math.round(item.ascent_m)} m   ▼ {Math.round(item.descent_m)} m</Text>
+        </Pressable>
+      )} />
+  );
+}
+
+const s = StyleSheet.create({
+  card: { backgroundColor: colori.bianco, borderRadius: 18, padding: 16, marginBottom: 12, elevation: 2 },
+  ultima: { borderWidth: 3, borderColor: colori.arancio },
+  badge: { color: colori.arancio, fontWeight: '800', marginBottom: 4 },
+  data: { fontSize: 16, fontWeight: '700', color: colori.rossoScuro },
+  riga: { fontSize: 16, color: colori.testo, marginTop: 4 },
+  vuoto: { textAlign: 'center', marginTop: 60, fontSize: 18, color: colori.testoChiaro },
+});
