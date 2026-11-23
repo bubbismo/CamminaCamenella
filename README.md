@@ -7,7 +7,7 @@ Esiste in due versioni che condividono lo stesso codice:
 - **Web app (PWA)** per iPhone e Android: si apre da un link e si aggiunge alla schermata Home.
 - **App Android (APK)**: tracciamento GPS anche con lo schermo spento.
 
-> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. Avatar, icona e schermata iniziale. Backup ed esportazione GPX. Pausa automatica. In arrivo: parziali per km, annunci vocali, profilo altimetrico colorato, record personali, pianificazione del percorso.
+> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. Avatar, icona e schermata iniziale. Backup ed esportazione GPX. Pausa automatica, parziali per km. In arrivo: annunci vocali, profilo altimetrico colorato, record personali, pianificazione del percorso.
 
 ## Usare la web app
 
@@ -32,6 +32,9 @@ Al primo avvio l'app propone di creare un avatar (capelli, occhiali, barba, occh
 
 ## Pausa automatica
 Quando ti fermi (semaforo, foto, panorama) per almeno 10 secondi, sullo schermo compare **IN PAUSA** e il cronometro si ferma da solo; riparte dopo circa 5 secondi di cammino. Velocità media, passo e calorie contano solo il tempo in movimento; nel dettaglio trovi sia il tempo trascorso sia quello in movimento. Si regola (o si spegne) in ⚙️ Impostazioni: *Sensibile* (1 km/h), *Normale* (1,5 km/h), *Corsa* (3 km/h). Il calcolo usa i punti GPS salvati e, quando il telefono la fornisce, la velocità misurata dal GPS: si può sempre ricalcolare.
+
+## Parziali per km
+Nel dettaglio di ogni camminata, la tabella *Parziali per km* mostra per ogni chilometro il passo (senza soste e pause), una barra (più lunga = più veloce) e il dislivello del km, preso dalla stessa curva di quota corretta del dislivello totale. Il km più veloce (🐇) e il più lento (🐢) sono evidenziati; l'ultimo tratto incompleto mostra il passo equivalente. Il momento in cui si passa ogni km è interpolato tra i punti GPS.
 
 ## Statistiche
 📊 *Statistiche* nella Home: distanza, calorie, numero di camminate, tempo e dislivello degli ultimi 7 giorni, 30 giorni o 12 mesi, con il confronto col periodo precedente e i grafici a barre di km e calorie (tocca una barra per il valore).

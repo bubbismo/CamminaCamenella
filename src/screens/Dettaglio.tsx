@@ -13,6 +13,9 @@ import { calcolaAltimetria, velocitaKmh } from '../core/altimetria';
 import { Grafico } from '../Grafico';
 import { faticaDi } from '../core/fatica';
 import { tempoMovimento } from '../core/movimento';
+import { calcolaParziali } from '../core/parziali';
+import { movimentoDi } from '../core/altimetria/servizio';
+import { TabellaParziali } from '../Parziali';
 import { creaGpx, nomeFileGpx } from '../core/gpx';
 import { salvaFile } from '../file';
 import type { Punto } from '../core/tipi';
@@ -40,11 +43,13 @@ export default function Dettaglio({ route, navigation }: any) {
     const dem = i?.dem_quote && i.dem_sigma ? { quote: i.dem_quote, sigma: i.dem_sigma } : undefined;
     const r = calcolaAltimetria(pts, { dem });
     const v = velocitaKmh(r.campioni);
+    const soste = w ? movimentoDi(w, pts).soste : [];
     return {
+      parziali: calcolaParziali(pts, { soste, profilo: { d: r.campioni.map((c) => c.d), quote: r.quote } }),
       quota: r.campioni.map((c, k) => ({ x: c.d / 1000, y: r.quote[k] })),
       vel: r.campioni.map((c, k) => ({ x: c.d / 1000, y: v[k] })),
     };
-  }, [pts, w?.altimetria]);
+  }, [pts, w]);
   if (!w) return null;
   const info = leggiInfo(w);
   const fatica = faticaDi(w.rpe);
@@ -75,6 +80,7 @@ export default function Dettaglio({ route, navigation }: any) {
           <Text style={s.faticaM}>Tocca per modificare</Text>
         </>) : <Text style={s.faticaT}>💪 Quanto è stata faticosa? Tocca per indicarlo</Text>}
       </Pressable>
+      {grafici && <TabellaParziali parziali={grafici.parziali} />}
       {grafici && <>
         <Grafico titolo="Altitudine" unita="m" dati={grafici.quota} colore={colori.rosso} />
         <Grafico titolo="Velocità" unita="km/h" dati={grafici.vel} colore={colori.arancio} decimali={1} />
