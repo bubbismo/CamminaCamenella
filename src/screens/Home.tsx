@@ -116,7 +116,10 @@ export default function Home({ navigation }: any) {
         {ultima && <Text style={s.ultima}>{ultima}</Text>}
         {!sfondoPossibile && <Text style={s.nota}>Tieni lo schermo acceso durante la corsa: dal browser il GPS si ferma se lo schermo si spegne o cambi app.</Text>}
       </View>
-      <Bottone testo="📖 Le mie camminate" onPress={() => navigation.navigate('Storico')} colore={colori.rossoScuro} />
+      <View style={{ flexDirection: 'row' }}>
+        <Bottone testo="📖 Camminate" onPress={() => navigation.navigate('Storico')} colore={colori.rossoScuro} style={{ flex: 1, marginRight: 6 }} />
+        <Bottone testo="📊 Statistiche" onPress={() => navigation.navigate('Statistiche')} colore={colori.rossoScuro} style={{ flex: 1, marginLeft: 6 }} />
+      </View>
     </View>
   );
 }

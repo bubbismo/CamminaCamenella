@@ -30,6 +30,9 @@ Indirizzo: **https://bubbismo.github.io/CamminaCamenella/**
 ## Avatar
 Al primo avvio l'app propone di creare un avatar (capelli, occhiali, barba, occhi, bocca, vestiti, colori, sfondo, più "Sorprendimi"). Si disegna **sul telefono** con [DiceBear](https://www.dicebear.com) e lo stile *Avataaars* di Pablo Stanley (uso libero, personale e commerciale): nessuna foto e nessun servizio esterno. Si modifica da ⚙️ Impostazioni o toccando l'avatar nella Home.
 
+## Statistiche
+📊 *Statistiche* nella Home: distanza, calorie, numero di camminate, tempo e dislivello degli ultimi 7 giorni, 30 giorni o 12 mesi, con il confronto col periodo precedente e i grafici a barre di km e calorie (tocca una barra per il valore).
+
 ## Backup ed esportazione GPX
 - **Backup** (⚙️ Impostazioni): un file JSON con tutte le camminate (punti GPS grezzi compresi), percorsi ripetuti, peso, nome, avatar e impostazioni. Il ripristino aggiunge solo le camminate che mancano e non cancella nulla.
 - **GPX** (dettaglio di una camminata): per aprire il percorso in altre app (Komoot, Strava, OsmAnd, Google Earth…).

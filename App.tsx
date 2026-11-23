@@ -6,6 +6,7 @@ import { colori } from './src/theme';
 import Home from './src/screens/Home';
 import Attivita from './src/screens/Attivita';
 import Storico from './src/screens/Storico';
+import Statistiche from './src/screens/Statistiche';
 import Dettaglio from './src/screens/Dettaglio';
 import AvatarEditor from './src/screens/AvatarEditor';
 import Fatica from './src/screens/Fatica';
@@ -28,6 +29,7 @@ export default function App() {
         <Stack.Screen name="Impostazioni" component={Impostazioni} options={{ title: 'Impostazioni' }} />
         <Stack.Screen name="Avatar" component={AvatarEditor} options={{ title: 'Il tuo avatar' }} />
         <Stack.Screen name="Fatica" component={Fatica} options={{ title: 'Com\'è andata?', headerBackVisible: false, gestureEnabled: false }} />
+        <Stack.Screen name="Statistiche" component={Statistiche} options={{ title: 'Statistiche' }} />
         <Stack.Screen name="Dettaglio" component={Dettaglio} options={{ title: 'Dettaglio' }} />
       </Stack.Navigator>
     </NavigationContainer>
