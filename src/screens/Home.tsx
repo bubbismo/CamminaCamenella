@@ -8,7 +8,8 @@ import { richiediPermessi, sfondoPossibile, staTracciando } from '../tracking';
 import { avvia, pulisciVuote, riprendiDopoInterruzione, scarta, termina } from '../core/sessione';
 import { formatDistanza } from '../core/geo';
 import { useDialogo } from '../dialogo';
-import { riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
+import { pesoConfigurato, riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
+import { leggiPref, scriviPref } from '../preferenze';
 
 const FRASI = ['Ogni passo conta! 💪', 'Oggi si va forte! 🔥', 'Le gambe sono pronte? 😄', 'Che bella giornata per camminare! ☀️'];
 
@@ -53,6 +54,14 @@ export default function Home({ navigation }: any) {
 
   const start = async () => {
     if (occupato.current) return;
+    if (!inCorso && !pesoConfigurato() && leggiPref('peso_saltato', '0') !== '1') {
+      dialogo({ titolo: 'Qual è il tuo peso?', messaggio: 'Serve una volta sola per stimare le calorie. Resta sul telefono e lo puoi cambiare quando vuoi nelle impostazioni.',
+        bottoni: [
+          { testo: 'Inserisci il peso', onPress: () => navigation.navigate('Impostazioni') },
+          { testo: 'Più tardi (niente calorie)', stile: 'secondario', onPress: () => { scriviPref('peso_saltato', '1'); start(); } },
+        ] });
+      return;
+    }
     occupato.current = true;
     try { await avviaTutto(); } finally { occupato.current = false; }
   };
@@ -77,7 +86,7 @@ export default function Home({ navigation }: any) {
     <View style={s.c}>
       <Pressable onPress={() => navigation.navigate('Impostazioni')} style={s.ingranaggio}><Text style={{ fontSize: 28 }}>⚙️</Text></Pressable>
       <Text style={s.titolo}>CamminaCamenella</Text>
-      <Text style={s.frase}>{frase}</Text>
+      <Text style={s.frase}>{leggiPref('nome', '') ? `Ciao ${leggiPref('nome', '')}! ` : ''}{frase}</Text>
       <View style={{ flex: 1, justifyContent: 'center' }}>
         <Bottone grande testo={inCorso ? '▶ CONTINUA' : '▶ START'} onPress={start} colore={colori.arancio} />
         {ultima && <Text style={s.ultima}>{ultima}</Text>}

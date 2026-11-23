@@ -1,15 +1,31 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { colori } from '../theme';
 import { leggiPref, scriviPref } from '../preferenze';
 import { SOGLIA_PREDEFINITA_M } from '../core/altimetria';
+import { PESO_MAX, PESO_MIN, pesoValido } from '../core/calorie';
 import { riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
 
 export default function Impostazioni() {
+  const [peso, setPeso] = useState(leggiPref('peso', ''));
+  const [nome, setNome] = useState(leggiPref('nome', ''));
+  const pesoNum = parseFloat(peso.replace(',', '.'));
+  const pesoOk = peso === '' || pesoValido(pesoNum);
   const [rete, setRete] = useState(leggiPref('rete', '0') === '1');
   const [soglia, setSoglia] = useState(leggiPref('soglia', String(SOGLIA_PREDEFINITA_M)));
   return (
-    <ScrollView style={{ backgroundColor: colori.crema }} contentContainerStyle={{ padding: 16 }}>
+    <ScrollView style={{ backgroundColor: colori.crema }} contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+      <View style={s.card}>
+        <Text style={s.titolo}>Il tuo profilo</Text>
+        <Text style={s.testo}>Peso corporeo (kg), serve per stimare le calorie. Si chiede una volta sola e resta sul telefono.</Text>
+        <TextInput value={peso} inputMode="decimal" placeholder="es. 70" style={[s.input, !pesoOk && { borderColor: colori.rosso }]}
+          onChangeText={(v) => { setPeso(v); const n = parseFloat(v.replace(',', '.')); if (pesoValido(n)) scriviPref('peso', String(n)); else if (v === '') scriviPref('peso', ''); }} />
+        {!pesoOk && <Text style={s.errore}>Inserisci un peso tra {PESO_MIN} e {PESO_MAX} kg.</Text>}
+        <Text style={[s.testo, { marginTop: 14 }]}>Nome (facoltativo)</Text>
+        <TextInput value={nome} placeholder="Come ti chiami?" style={s.input} maxLength={30}
+          onChangeText={(v) => { setNome(v); scriviPref('nome', v.trim()); }} />
+        <Text style={[s.testo, { marginTop: 14 }]}>Unità: sistema metrico (km, m, kg).</Text>
+      </View>
       <View style={s.card}>
         <View style={s.riga}>
           <Text style={s.titolo}>Correggi la quota con la rete</Text>
@@ -40,6 +56,8 @@ const s = StyleSheet.create({
   titolo: { fontSize: 18, fontWeight: '800', color: colori.rossoScuro, flex: 1, paddingRight: 10 },
   testo: { fontSize: 15, color: colori.testo, marginTop: 8 },
   privacy: { fontSize: 14, color: colori.testoChiaro, marginTop: 10, backgroundColor: colori.crema, borderRadius: 12, padding: 10 },
+  input: { borderWidth: 2, borderColor: '#E7D5C0', borderRadius: 14, padding: 12, fontSize: 18, marginTop: 8, color: colori.testo, backgroundColor: colori.crema },
+  errore: { color: colori.rosso, marginTop: 6, fontSize: 14 },
   chip: { backgroundColor: colori.crema, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 14, marginRight: 8 },
   chipOn: { backgroundColor: colori.rosso },
   chipT: { fontSize: 16, fontWeight: '700', color: colori.rossoScuro },

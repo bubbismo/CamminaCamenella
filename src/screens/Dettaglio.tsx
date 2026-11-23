@@ -42,9 +42,13 @@ export default function Dettaglio({ route, navigation }: any) {
         <Dato etichetta="Distanza" valore={formatDistanza(w.distance_m)} />
         <Dato etichetta="Velocità media" valore={`${kmh.toFixed(1).replace('.', ',')} km/h`} />
         <Dato etichetta="Passo medio (min/km)" valore={formatPasso(w.distance_m, w.active_ms)} />
+        <Dato etichetta="Calorie (stima)" valore={w.calories != null ? `≈ ${Math.round(w.calories)} kcal` : '—'} />
         <Dato etichetta="Salita" valore={`▲ ${Math.round(w.ascent_m)} m`} />
         <Dato etichetta="Discesa" valore={`▼ ${Math.round(w.descent_m)} m`} />
       </View>
+      <Text style={s.nota2}>{w.calories != null
+        ? `🔥 Le calorie sono una stima (equazioni ACSM per camminata e corsa, corrette per la pendenza), calcolata con ${info?.peso_kg ?? '—'} kg di peso. Non conta soste e pause. L'errore tipico è del 15-20%.`
+        : '🔥 Per vedere le calorie inserisci il tuo peso in Impostazioni (⚙️ nella Home). I dati restano sul telefono.'}</Text>
       {info && <BloccoDislivello info={info} />}
       {stimata > 0 && <Text style={s.avviso}>⚠️ Circa {formatDistanza(stimata)} di questo percorso sono una stima in linea retta: in quel tratto il GPS non ha registrato (app sospesa).</Text>}
       <Bottone testo="🗑 Elimina" colore={colori.rossoScuro} style={{ marginTop: 20 }}
@@ -80,6 +84,7 @@ function BloccoDislivello({ info }: { info: NonNullable<ReturnType<typeof leggiI
 }
 
 const s = StyleSheet.create({
+  nota2: { fontSize: 13, color: colori.testoChiaro, marginTop: 8 },
   blocco: { backgroundColor: colori.bianco, borderRadius: 18, padding: 14, marginTop: 10 },
   bloccoTitolo: { fontSize: 16, fontWeight: '800', color: colori.rossoScuro },
   bloccoFonte: { fontSize: 15, color: colori.arancio, fontWeight: '700', marginVertical: 4 },

@@ -2,8 +2,9 @@
 // riconoscimento dei percorsi ripetuti. I dati GPS grezzi non vengono mai modificati: si può sempre ricalcolare.
 import { aggiorna, camminata, elencoCamminate, elencoPercorsi, punti, salvaPercorso } from '../../archivio';
 import { leggiPref } from '../../preferenze';
+import { pesoValido } from '../calorie';
 import type { Camminata } from '../tipi';
-import { calcolaAltimetria, Fonte, SD, SOGLIA_PREDEFINITA_M } from './calcola';
+import { calcolaAltimetria, calorieDaRisultato, Fonte, SD, SOGLIA_PREDEFINITA_M } from './calcola';
 import { campiona } from './campiona';
 import { ottieniDem } from './dem';
 import { aggiornaProfilo, nuovoPercorso, trovaPercorso } from './percorsi';
@@ -21,11 +22,17 @@ export type InfoAltimetria = {
   ripetizioni?: number;          // quante uscite precedenti hanno formato il profilo usato
   dem_quote?: (number | null)[]; // quote DEM per campione (cache: si può ricalcolare senza rete)
   dem_sigma?: number;
+  peso_kg?: number;              // peso usato per le calorie
   in_profilo?: number;           // id del percorso al cui profilo questa uscita ha già contribuito
 };
 
 export const leggiInfo = (w: Pick<Camminata, 'altimetria'>): InfoAltimetria | null => {
   try { return w.altimetria ? (JSON.parse(w.altimetria) as InfoAltimetria) : null; } catch { return null; }
+};
+
+export const pesoConfigurato = (): number | null => {
+  const v = parseFloat(leggiPref('peso', '').replace(',', '.'));
+  return pesoValido(v) ? v : null;
 };
 
 export const correzioneReteAttiva = () => leggiPref('rete', '0') === '1';
@@ -71,7 +78,8 @@ export async function elaboraCamminata(id: number, opz: { saltaRete?: boolean } 
         offset_gps_dem: r.offsetGpsDem, ripetizioni: c?.percorso.n,
         dem_quote: dem?.quote, dem_sigma: dem ? demSigma : undefined, in_profilo: inProfilo ?? giaInProfilo,
       };
-      await aggiorna(id, { ascent_m: r.salita, descent_m: r.discesa, altimetria: JSON.stringify(info) });
+      const peso = pesoConfigurato();
+      await aggiorna(id, { ascent_m: r.salita, descent_m: r.discesa, calories: peso ? calorieDaRisultato(r, peso) : null, altimetria: JSON.stringify({ ...info, peso_kg: peso ?? undefined }) });
       return { r, c, info };
     };
 

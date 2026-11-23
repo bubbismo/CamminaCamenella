@@ -7,7 +7,7 @@ Esiste in due versioni che condividono lo stesso codice:
 - **Web app (PWA)** per iPhone e Android: si apre da un link e si aggiunge alla schermata Home.
 - **App Android (APK)**: tracciamento GPS anche con lo schermo spento.
 
-> Progetto in costruzione. Fatto: registrazione, storico, mappa (standard e outdoor con curve di livello, tessere in cache). In arrivo: calorie, fatica percepita, avatar, esportazione GPX, pianificazione del percorso.
+> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie (stima ACSM). In arrivo: fatica percepita, avatar, esportazione GPX, pianificazione del percorso.
 
 ## Usare la web app
 

@@ -4,6 +4,7 @@ import { campiona, Campione } from './campiona';
 import { fondi } from './kalman';
 import { salitaDiscesa, salitaDiscesaGrezza } from './isteresi';
 import { Corrispondenza, fondiConProfilo } from './percorsi';
+import { calorieTratti, TrattoCal } from '../calorie';
 
 export const SOGLIA_PREDEFINITA_M = 3;
 
@@ -57,4 +58,17 @@ export function calcolaAltimetria(pts: Punto[], o: {
 export function dislivelloLive(pts: Punto[], soglia = SOGLIA_PREDEFINITA_M): SD {
   const r = calcolaAltimetria(pts, { soglia });
   return { salita: r.salita, discesa: r.discesa };
+}
+
+/** Calorie stimate dal percorso: velocità e pendenza di ogni tratto da 25 m (quota già filtrata). */
+export function calorieDaRisultato(r: Pick<RisultatoAltimetria, 'campioni' | 'quote'>, pesoKg: number): number {
+  const tratti: TrattoCal[] = [];
+  for (let i = 1; i < r.campioni.length; i++) {
+    tratti.push({
+      metri: r.campioni[i].d - r.campioni[i - 1].d,
+      secondi: (r.campioni[i].t - r.campioni[i - 1].t) / 1000,
+      salitaM: r.quote[i] - r.quote[i - 1],
+    });
+  }
+  return calorieTratti(pesoKg, tratti);
 }

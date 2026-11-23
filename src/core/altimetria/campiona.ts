@@ -4,6 +4,7 @@ import type { Punto } from '../tipi';
 /** Un punto della traccia ricampionata a passo fisso lungo il percorso. */
 export type Campione = {
   d: number;            // distanza dall'inizio (m)
+  t: number;            // istante (ms) interpolato lungo la traccia
   lat: number; lon: number;
   z: number | null;     // quota GPS grezza media dei punti vicini (null se nessuna misura utile)
   r: number;            // varianza (m²) della misura GPS
@@ -43,7 +44,7 @@ export function campiona(pts: Punto[], passo = PASSO_M): Campione[] {
     const seg = n > 1 ? cum[j + 1] - cum[j] : 0;
     const f = seg > 0 ? Math.min(1, Math.max(0, (s - cum[j]) / seg)) : 0;
     const a = pts[j], b = pts[Math.min(j + 1, n - 1)];
-    const lat = a.lat + (b.lat - a.lat) * f, lon = a.lon + (b.lon - a.lon) * f;
+    const lat = a.lat + (b.lat - a.lat) * f, lon = a.lon + (b.lon - a.lon) * f, t = a.t + (b.t - a.t) * f;
 
     while (lo < n && cum[lo] < s - passo / 2) lo++;
     while (hi < n && cum[hi] <= s + passo / 2) hi++;
@@ -54,7 +55,7 @@ export function campiona(pts: Punto[], passo = PASSO_M): Campione[] {
       sw += 1 / v; swz += pts[i].alt! / v; sv += v; k++;
     }
     // Gli errori GPS di punti vicini sono correlati: non si "guadagna" più di 3 misure indipendenti.
-    out.push({ d: s, lat, lon, z: k ? swz / sw : null, r: k ? sv / k / Math.min(k, 3) : 1e6 });
+    out.push({ d: s, t, lat, lon, z: k ? swz / sw : null, r: k ? sv / k / Math.min(k, 3) : 1e6 });
   }
   return out;
 }
