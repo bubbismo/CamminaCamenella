@@ -1,6 +1,6 @@
 // Service worker minimo: serve per l'installazione e per aprire l'app anche senza rete.
 // Strategia "rete prima, poi cache": dopo un aggiornamento si vede subito la versione nuova.
-const CACHE = 'camminacamenella-v8';
+const CACHE = 'camminacamenella-v9';
 const TILES = 'camminacamenella-tessere';
 const MAX_TESSERE = 800;
 const TERRENO = 'camminacamenella-terreno';

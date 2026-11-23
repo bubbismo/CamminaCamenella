@@ -6,6 +6,7 @@ import {  elencoCamminate } from '../archivio';
 import type { Camminata } from '../core/tipi';
 import { formatDistanza, formatDurata } from '../core/geo';
 import { faticaDi } from '../core/fatica';
+import { giorniDallUltimoBackup } from '../core/backupServizio';
 
 export default function Storico({ navigation }: any) {
   const [lista, setLista] = useState<Camminata[]>([]);
@@ -13,6 +14,10 @@ export default function Storico({ navigation }: any) {
   return (
     <FlatList style={{ backgroundColor: colori.crema }} contentContainerStyle={{ padding: 14 }} data={lista}
       keyExtractor={(w) => String(w.id)}
+      ListHeaderComponent={lista.length > 0 && ((giorniDallUltimoBackup() ?? 999) > 14) ? (
+        <Pressable onPress={() => navigation.navigate('Impostazioni')} style={s.backup}>
+          <Text style={s.backupT}>💾 Le tue camminate sono solo su questo telefono. Tocca qui per salvare un backup.</Text>
+        </Pressable>) : undefined}
       ListEmptyComponent={<Text style={s.vuoto}>Nessuna camminata ancora. Premi START! 🏃</Text>}
       renderItem={({ item, index }) => (
         <Pressable onPress={() => navigation.navigate('Dettaglio', { id: item.id })}
@@ -28,6 +33,8 @@ export default function Storico({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
+  backup: { backgroundColor: colori.giallo, borderRadius: 16, padding: 12, marginBottom: 12 },
+  backupT: { color: colori.testo, fontWeight: '700', fontSize: 15 },
   card: { backgroundColor: colori.bianco, borderRadius: 18, padding: 16, marginBottom: 12, elevation: 2 },
   ultima: { borderWidth: 3, borderColor: colori.arancio },
   badge: { color: colori.arancio, fontWeight: '800', marginBottom: 4 },

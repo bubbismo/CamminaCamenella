@@ -6,10 +6,53 @@ import { leggiAvatar } from '../core/avatar';
 import { leggiPref, scriviPref } from '../preferenze';
 import { SOGLIA_PREDEFINITA_M } from '../core/altimetria';
 import { PESO_MAX, PESO_MIN, pesoValido } from '../core/calorie';
+import { useDialogo } from '../dialogo';
+import { leggiBackup, nomeFileBackup, riassunto } from '../core/backup';
+import { creaBackup, giorniDallUltimoBackup, ripristinaBackup, segnaBackupFatto } from '../core/backupServizio';
+import { salvaFile, scegliFileTesto } from '../file';
 import { riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
 
 export default function Impostazioni({ navigation }: any) {
   const avatar = leggiAvatar();
+  const dialogo = useDialogo();
+  const [giorni, setGiorni] = useState(giorniDallUltimoBackup());
+  const [lavoro, setLavoro] = useState(false);
+  const salvaBackup = async () => {
+    if (lavoro) return; setLavoro(true);
+    try {
+      const b = await creaBackup();
+      const esito = await salvaFile(nomeFileBackup(), JSON.stringify(b), 'application/json');
+      if (esito !== 'annullato') {
+        segnaBackupFatto(); setGiorni(0);
+        dialogo({ titolo: 'Backup pronto 💾', messaggio: `${riassunto(b)}\n\nTienilo al sicuro: su File/Drive, oppure mandatelo per email.`, bottoni: [{ testo: 'Ok' }] });
+      }
+    } catch (e: any) {
+      dialogo({ titolo: 'Backup non riuscito', messaggio: String(e?.message ?? e), bottoni: [{ testo: 'Ok' }] });
+    } finally { setLavoro(false); }
+  };
+  const ripristina = async () => {
+    if (lavoro) return;
+    try {
+      const testo = await scegliFileTesto();
+      if (testo == null) return;
+      const b = leggiBackup(testo);
+      dialogo({ titolo: 'Ripristinare questo backup?', messaggio: `${riassunto(b)}\n\nVerranno aggiunte le camminate che non sono già sul telefono; nulla viene cancellato. Peso, nome, avatar e impostazioni del backup sostituiscono quelli attuali.`,
+        bottoni: [
+          { testo: 'Ripristina', onPress: async () => {
+            setLavoro(true);
+            try {
+              const r = await ripristinaBackup(b);
+              dialogo({ titolo: 'Ripristino completato ✅', messaggio: `Camminate aggiunte: ${r.aggiunte}.${r.gia ? ` Già presenti (saltate): ${r.gia}.` : ''}`, bottoni: [{ testo: 'Ok', onPress: () => navigation.popToTop() }] });
+            } catch (e: any) {
+              dialogo({ titolo: 'Ripristino non riuscito', messaggio: String(e?.message ?? e), bottoni: [{ testo: 'Ok' }] });
+            } finally { setLavoro(false); }
+          } },
+          { testo: 'Annulla', stile: 'secondario' },
+        ] });
+    } catch (e: any) {
+      dialogo({ titolo: 'File non valido', messaggio: String(e?.message ?? e), bottoni: [{ testo: 'Ok' }] });
+    }
+  };
   const [peso, setPeso] = useState(leggiPref('peso', ''));
   const [nome, setNome] = useState(leggiPref('nome', ''));
   const pesoNum = parseFloat(peso.replace(',', '.'));
@@ -35,6 +78,17 @@ export default function Impostazioni({ navigation }: any) {
         <TextInput value={nome} placeholder="Come ti chiami?" style={s.input} maxLength={30}
           onChangeText={(v) => { setNome(v); scriviPref('nome', v.trim()); }} />
         <Text style={[s.testo, { marginTop: 14 }]}>Unità: sistema metrico (km, m, kg).</Text>
+      </View>
+      <View style={s.card}>
+        <Text style={s.titolo}>Backup delle camminate</Text>
+        <Text style={s.testo}>Le camminate sono salvate solo su questo telefono, dentro l'app. Se cancelli i dati del browser o cambi telefono si perdono: salva ogni tanto un backup (un file) e tienilo al sicuro.</Text>
+        <Text style={[s.testo, { fontWeight: '700', color: giorni == null || giorni > 14 ? colori.rosso : colori.verde }]}>
+          {giorni == null ? 'Nessun backup ancora.' : giorni === 0 ? 'Ultimo backup: oggi ✅' : `Ultimo backup: ${giorni} ${giorni === 1 ? 'giorno' : 'giorni'} fa`}
+        </Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 }}>
+          <Pressable onPress={salvaBackup} style={[s.chip, s.chipOn]}><Text style={[s.chipT, { color: '#fff' }]}>{lavoro ? '⏳ Attendi…' : '💾 Salva backup'}</Text></Pressable>
+          <Pressable onPress={ripristina} style={s.chip}><Text style={s.chipT}>📂 Ripristina</Text></Pressable>
+        </View>
       </View>
       <View style={s.card}>
         <View style={s.riga}>

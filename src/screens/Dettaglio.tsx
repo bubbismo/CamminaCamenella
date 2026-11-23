@@ -12,6 +12,8 @@ import { leggiInfo } from '../core/altimetria/servizio';
 import { calcolaAltimetria, velocitaKmh } from '../core/altimetria';
 import { Grafico } from '../Grafico';
 import { faticaDi } from '../core/fatica';
+import { creaGpx, nomeFileGpx } from '../core/gpx';
+import { salvaFile } from '../file';
 import type { Punto } from '../core/tipi';
 
 export default function Dettaglio({ route, navigation }: any) {
@@ -77,6 +79,11 @@ export default function Dettaglio({ route, navigation }: any) {
       </>}
       {info && <BloccoDislivello info={info} />}
       {stimata > 0 && <Text style={s.avviso}>⚠️ Circa {formatDistanza(stimata)} di questo percorso sono una stima in linea retta: in quel tratto il GPS non ha registrato (app sospesa).</Text>}
+      <Bottone testo="📤 Esporta GPX (per altre app)" colore={colori.arancio} style={{ marginTop: 16 }}
+        onPress={async () => {
+          try { await salvaFile(nomeFileGpx(w.started_at), creaGpx(w, pts), 'application/gpx+xml'); }
+          catch (e: any) { dialogo({ titolo: 'Esportazione non riuscita', messaggio: String(e?.message ?? e), bottoni: [{ testo: 'Ok' }] }); }
+        }} />
       <Bottone testo="🗑 Elimina" colore={colori.rossoScuro} style={{ marginTop: 20 }}
         onPress={() => dialogo({ titolo: 'Eliminare?', messaggio: 'La camminata verrà cancellata per sempre.', bottoni: [
           { testo: 'Elimina', stile: 'pericolo', onPress: async () => { await eliminaCamminata(w.id); navigation.popToTop(); } },

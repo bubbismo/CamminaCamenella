@@ -7,7 +7,7 @@ Esiste in due versioni che condividono lo stesso codice:
 - **Web app (PWA)** per iPhone e Android: si apre da un link e si aggiunge alla schermata Home.
 - **App Android (APK)**: tracciamento GPS anche con lo schermo spento.
 
-> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. Avatar, icona e schermata iniziale. In arrivo: esportazione GPX, pianificazione del percorso.
+> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. Avatar, icona e schermata iniziale. Backup ed esportazione GPX. In arrivo:, pianificazione del percorso.
 
 ## Usare la web app
 
@@ -24,11 +24,16 @@ Indirizzo: **https://bubbismo.github.io/CamminaCamenella/**
 - Un sito **non può usare il GPS con lo schermo spento**. Durante la corsa lo schermo resta acceso (nero, per risparmiare batteria) e non bisogna cambiare app. Se la corsa viene interrotta, alla riapertura l'app chiede se riprenderla: il tratto senza GPS è collegato con una linea dritta e segnato come *stimato*.
 - Lo schermo sempre acceso consuma più batteria.
 - Per non fermare la corsa per sbaglio in tasca, Pausa e Stop si attivano **tenendo premuto** (1 e 2 secondi).
-- I dati sono nel browser: se pulisci i dati di Safari/Chrome si perdono. (Una funzione di backup arriverà.)
+- I dati sono nel browser: se pulisci i dati di Safari/Chrome si perdono. Fai ogni tanto un **backup** (⚙️ Impostazioni → *Salva backup*): è un file da tenere su File/Drive o da mandarti per email, e con *Ripristina* le camminate tornano (anche su un altro telefono).
 - La stima del dislivello è approssimativa (altitudine GPS smussata).
 
 ## Avatar
 Al primo avvio l'app propone di creare un avatar (capelli, occhiali, barba, occhi, bocca, vestiti, colori, sfondo, più "Sorprendimi"). Si disegna **sul telefono** con [DiceBear](https://www.dicebear.com) e lo stile *Avataaars* di Pablo Stanley (uso libero, personale e commerciale): nessuna foto e nessun servizio esterno. Si modifica da ⚙️ Impostazioni o toccando l'avatar nella Home.
+
+## Backup ed esportazione GPX
+- **Backup** (⚙️ Impostazioni): un file JSON con tutte le camminate (punti GPS grezzi compresi), percorsi ripetuti, peso, nome, avatar e impostazioni. Il ripristino aggiunge solo le camminate che mancano e non cancella nulla.
+- **GPX** (dettaglio di una camminata): per aprire il percorso in altre app (Komoot, Strava, OsmAnd, Google Earth…).
+Su iPhone e Android si apre il foglio di condivisione (Salva su File, Drive, email, WhatsApp…).
 
 ## Dislivello preciso (senza barometro)
 Il GPS sbaglia la quota di 10-20 m e, sommando il rumore, gonfia il dislivello. CamminaCamenella lo corregge in più modi (modulo `src/core/altimetria/`, comune a web e Android):

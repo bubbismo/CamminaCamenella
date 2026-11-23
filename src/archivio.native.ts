@@ -110,3 +110,22 @@ export async function salvaPercorso(p: Percorso): Promise<number> {
   if (id != null) { await db.runAsync('UPDATE percorsi SET dati=? WHERE id=?', JSON.stringify(resto), id); return id; }
   return (await db.runAsync('INSERT INTO percorsi (dati) VALUES (?)', JSON.stringify(resto))).lastInsertRowId;
 }
+
+/** Inserisce una camminata completa (da un backup) con tutti i suoi punti. */
+export async function importaCamminata(w: Omit<Camminata, 'id'>, pts: Punto[]): Promise<number> {
+  const db = await getDb();
+  let id = 0;
+  await db.withTransactionAsync(async () => {
+    const r = await db.runAsync(
+      `INSERT INTO walks (started_at, ended_at, status, paused_since, paused_total_ms, distance_m, ascent_m, descent_m, active_ms, calories, rpe, notes, altimetria)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      w.started_at, w.ended_at, w.status, w.paused_since, w.paused_total_ms ?? 0, w.distance_m ?? 0, w.ascent_m ?? 0, w.descent_m ?? 0,
+      w.active_ms ?? 0, w.calories, w.rpe, w.notes, w.altimetria ?? null);
+    id = r.lastInsertRowId;
+    for (const p of pts) {
+      await db.runAsync('INSERT INTO points (walk_id,t,lat,lon,alt,acc,speed,gap,alt_acc) VALUES (?,?,?,?,?,?,?,?,?)',
+        id, p.t, p.lat, p.lon, p.alt ?? null, p.acc ?? null, p.speed ?? null, p.gap ?? null, p.alt_acc ?? null);
+    }
+  });
+  return id;
+}

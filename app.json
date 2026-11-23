@@ -46,7 +46,8 @@
           "backgroundColor": "#E5202A",
           "resizeMode": "contain"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "baseUrl": "/CamminaCamenella"

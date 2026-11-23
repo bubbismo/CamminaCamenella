@@ -104,3 +104,14 @@ export async function salvaPercorso(p: Percorso): Promise<number> {
   const st = await store('percorsi', true);
   return (await rich(p.id != null ? st.put(p) : st.add({ ...p, id: undefined }))) as number;
 }
+
+/** Inserisce una camminata completa (da un backup) con tutti i suoi punti, in un'unica transazione. */
+export async function importaCamminata(w: Omit<Camminata, 'id'>, pts: Punto[]): Promise<number> {
+  const db = await apri();
+  const tx = db.transaction(['walks', 'points'], 'readwrite');
+  const id = (await rich(tx.objectStore('walks').add({ ...w }))) as number;
+  const st = tx.objectStore('points');
+  for (const p of pts) st.add({ t: p.t, lat: p.lat, lon: p.lon, alt: p.alt ?? null, alt_acc: p.alt_acc ?? null, acc: p.acc ?? null, speed: p.speed ?? null, gap: p.gap ?? null, walk_id: id });
+  await new Promise<void>((ok, ko) => { tx.oncomplete = () => ok(); tx.onerror = () => ko(tx.error); tx.onabort = () => ko(tx.error); });
+  return id;
+}
