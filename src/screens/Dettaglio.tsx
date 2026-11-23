@@ -16,6 +16,9 @@ import { tempoMovimento } from '../core/movimento';
 import { calcolaParziali } from '../core/parziali';
 import { movimentoDi } from '../core/altimetria/servizio';
 import { TabellaParziali } from '../Parziali';
+import { ProfiloAltimetrico } from '../ProfiloAltimetrico';
+import { leggiSoglie } from '../core/pendenze';
+import { leggiPref } from '../preferenze';
 import { creaGpx, nomeFileGpx } from '../core/gpx';
 import { salvaFile } from '../file';
 import type { Punto } from '../core/tipi';
@@ -46,7 +49,7 @@ export default function Dettaglio({ route, navigation }: any) {
     const soste = w ? movimentoDi(w, pts).soste : [];
     return {
       parziali: calcolaParziali(pts, { soste, inizio: w?.started_at, profilo: { d: r.campioni.map((c) => c.d), quote: r.quote } }),
-      quota: r.campioni.map((c, k) => ({ x: c.d / 1000, y: r.quote[k] })),
+      profilo: { d: r.campioni.map((c) => c.d), quote: r.quote },
       vel: r.campioni.map((c, k) => ({ x: c.d / 1000, y: v[k] })),
     };
   }, [pts, w]);
@@ -82,7 +85,7 @@ export default function Dettaglio({ route, navigation }: any) {
       </Pressable>
       {grafici && <TabellaParziali parziali={grafici.parziali} />}
       {grafici && <>
-        <Grafico titolo="Altitudine" unita="m" dati={grafici.quota} colore={colori.rosso} />
+        <ProfiloAltimetrico d={grafici.profilo.d} quote={grafici.profilo.quote} soglie={leggiSoglie(leggiPref('pendenze', ''))} />
         <Grafico titolo="Velocità" unita="km/h" dati={grafici.vel} colore={colori.arancio} decimali={1} />
       </>}
       {w.moving_ms != null && w.active_ms - w.moving_ms >= 60000 && <Text style={s.nota2}>⏸ Soste riconosciute in automatico: {formatDurata(w.active_ms - w.moving_ms)}. Non contano nel tempo in movimento, nel passo e nelle calorie.</Text>}

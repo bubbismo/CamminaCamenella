@@ -7,7 +7,7 @@ Esiste in due versioni che condividono lo stesso codice:
 - **Web app (PWA)** per iPhone e Android: si apre da un link e si aggiunge alla schermata Home.
 - **App Android (APK)**: tracciamento GPS anche con lo schermo spento.
 
-> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. Avatar, icona e schermata iniziale. Backup ed esportazione GPX. Pausa automatica, parziali per km, annunci vocali. In arrivo: profilo altimetrico colorato, record personali, pianificazione del percorso.
+> Progetto in costruzione. Fatto: registrazione, storico, mappa, dislivello preciso, calorie, fatica percepita, grafici. Avatar, icona e schermata iniziale. Backup ed esportazione GPX. Pausa automatica, parziali per km, annunci vocali, profilo altimetrico colorato. In arrivo: record personali, pianificazione del percorso.
 
 ## Usare la web app
 
@@ -41,6 +41,9 @@ Durante la camminata una voce dice a che punto sei: ogni km (con il passo dell'u
 - Usa solo voci italiane **installate sul telefono**: niente rete, il testo non esce dal dispositivo. Se il browser ha solo voci online, l'app resta in silenzio e lo segnala.
 - iPhone: in modalità silenziosa la voce non si sente; il volume dipende anche dai tasti del telefono. La voce si "sblocca" toccando Start.
 - Funziona con l'app aperta e lo schermo acceso (come il GPS della web app).
+
+## Profilo altimetrico colorato
+Nel dettaglio, il profilo altimetrico è colorato per pendenza: 🟦 discesa, 🟩 pianeggiante, 🟨 salita leggera, 🟧 impegnativa, 🟥 ripida. Sotto, i km e la percentuale di ogni tipo e la pendenza massima; toccando o scorrendo il grafico si leggono quota e pendenza in quel punto. La pendenza è misurata su 100 m, dalla stessa quota corretta del dislivello. Le soglie si scelgono in ⚙️ Impostazioni: *Escursionismo* (3/8/15%), *Strada e corsa* (2/5/10%), *Montagna* (5/12/20%). I colori sono scelti per restare distinguibili anche da chi ha difficoltà a distinguere rosso e verde.
 
 ## Statistiche
 📊 *Statistiche* nella Home: distanza, calorie, numero di camminate, tempo e dislivello degli ultimi 7 giorni, 30 giorni o 12 mesi, con il confronto col periodo precedente e i grafici a barre di km e calorie (tocca una barra per il valore).

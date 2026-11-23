@@ -14,6 +14,7 @@ import { riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
 import { SOGLIA_KMH_PREDEFINITA } from '../core/movimento';
 import { DATI_VOCE, DatoVoce, FREQUENZE, frasePeriodica, leggiPrefVoce, VOLUMI } from '../core/annunci';
 import { parla, sbloccaVoce, statoVoce } from '../voce';
+import { PRESET_SOGLIE } from '../core/pendenze';
 
 const AUTOPAUSA = [
   { v: '0', t: 'Spenta' },
@@ -78,6 +79,7 @@ export default function Impostazioni({ navigation }: any) {
     parla(frasePeriodica({ distanzaM: 2000, movimentoMs: 24 * 60000 + 10000, salitaM: 85, fermo: false, pausa: false,
       parziali: [{ n: 2, daM: 1000, aM: 2000, metri: 1000, ms: 716000, passoSKm: 716, salita: 40, discesa: 0, completo: true }] }, p), p.volume);
   };
+  const [pendenze, setPendenze] = useState(leggiPref('pendenze', PRESET_SOGLIE[0].v));
   const [autopausa, setAutopausa] = useState(leggiPref('autopausa', String(SOGLIA_KMH_PREDEFINITA)));
   const descrAutopausa = autopausa === '0'
     ? 'Il tempo scorre sempre, finché non premi Pausa.'
@@ -176,6 +178,18 @@ export default function Impostazioni({ navigation }: any) {
         </View>
         <Text style={s.testo}>{descrAutopausa}</Text>
         <Text style={[s.testo, { color: colori.testoChiaro, fontSize: 14 }]}>Vale per le prossime camminate. La pausa manuale funziona sempre.</Text>
+      </View>
+      <View style={s.card}>
+        <Text style={s.titolo}>Colori del profilo altimetrico</Text>
+        <Text style={s.testo}>Da che pendenza una salita è leggera (giallo), impegnativa (arancio) o ripida (rosso). Pianeggiante in verde, discesa in blu.</Text>
+        <View style={s.chips}>
+          {PRESET_SOGLIE.map(({ v, t }) => (
+            <Pressable key={v} onPress={() => { setPendenze(v); scriviPref('pendenze', v); }} style={[s.chip, s.chipM, pendenze === v && s.chipOn]}>
+              <Text style={[s.chipT, pendenze === v && { color: '#fff' }]}>{t}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={s.testo}>{(PRESET_SOGLIE.find((x) => x.v === pendenze) ?? PRESET_SOGLIE[0]).d.replace(/^./, (c) => c.toUpperCase())}.</Text>
       </View>
       <View style={s.card}>
         <Text style={s.titolo}>Soglia del dislivello</Text>
