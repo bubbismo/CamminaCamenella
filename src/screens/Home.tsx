@@ -33,7 +33,7 @@ export default function Home({ navigation }: any) {
           titolo: 'Corsa interrotta', messaggio: 'La corsa si è fermata (telefonata, cambio di app o schermo spento). Vuoi riprenderla? Il tratto senza GPS verrà collegato con una linea dritta e segnato come stimato.',
           bottoni: [
             { testo: 'Riprendi', onPress: async () => { await riprendiDopoInterruzione(w.id); navigation.navigate('Attivita'); } },
-            { testo: 'Termina e salva', stile: 'secondario', onPress: async () => { await termina(w.id); navigation.navigate('Dettaglio', { id: w.id }); } },
+            { testo: 'Termina e salva', stile: 'secondario', onPress: async () => { await termina(w.id); navigation.navigate('Fatica', { id: w.id }); } },
             { testo: 'Scarta', stile: 'pericolo', onPress: async () => { await scarta(w.id); controlla(); } },
           ],
         });

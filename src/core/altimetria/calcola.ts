@@ -72,3 +72,18 @@ export function calorieDaRisultato(r: Pick<RisultatoAltimetria, 'campioni' | 'qu
   }
   return calorieTratti(pesoKg, tratti);
 }
+
+/** Velocità (km/h) lungo il percorso: ogni tratto da 25 m, media mobile di 5; null durante soste e pause. */
+export function velocitaKmh(campioni: Campione[]): (number | null)[] {
+  const v: (number | null)[] = campioni.map((c, i) => {
+    if (i === 0) return null;
+    const dt = (c.t - campioni[i - 1].t) / 1000;
+    if (dt <= 0 || dt > 120) return null;
+    const kmh = ((c.d - campioni[i - 1].d) / dt) * 3.6;
+    return kmh > 30 ? null : kmh; // oltre 30 km/h non è camminata/corsa: dato incoerente
+  });
+  return v.map((_, i) => {
+    const w = v.slice(Math.max(0, i - 2), i + 3).filter((x): x is number => x != null);
+    return v[i] == null || !w.length ? null : w.reduce((a, b) => a + b, 0) / w.length;
+  });
+}

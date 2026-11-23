@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Bottone, Dato } from '../ui';
 import { colori } from '../theme';
 import {  camminata, eliminaCamminata } from '../archivio';
@@ -9,6 +9,9 @@ import { punti } from '../archivio';
 import { useDialogo } from '../dialogo';
 import { Mappa } from '../Mappa';
 import { leggiInfo } from '../core/altimetria/servizio';
+import { calcolaAltimetria, velocitaKmh } from '../core/altimetria';
+import { Grafico } from '../Grafico';
+import { faticaDi } from '../core/fatica';
 import type { Punto } from '../core/tipi';
 
 export default function Dettaglio({ route, navigation }: any) {
@@ -28,8 +31,20 @@ export default function Dettaglio({ route, navigation }: any) {
     const t = setInterval(() => { if (++n > 40) clearInterval(t); else camminata(route.params.id).then(setW); }, 2000);
     return () => clearInterval(t);
   }, [stato, route.params.id]);
+  const grafici = React.useMemo(() => {
+    if (pts.length < 3) return null;
+    const i = w ? leggiInfo(w) : null;
+    const dem = i?.dem_quote && i.dem_sigma ? { quote: i.dem_quote, sigma: i.dem_sigma } : undefined;
+    const r = calcolaAltimetria(pts, { dem });
+    const v = velocitaKmh(r.campioni);
+    return {
+      quota: r.campioni.map((c, k) => ({ x: c.d / 1000, y: r.quote[k] })),
+      vel: r.campioni.map((c, k) => ({ x: c.d / 1000, y: v[k] })),
+    };
+  }, [pts, w?.altimetria]);
   if (!w) return null;
   const info = leggiInfo(w);
+  const fatica = faticaDi(w.rpe);
   const kmh = w.active_ms > 0 ? (w.distance_m / 1000) / (w.active_ms / 3600000) : 0;
   return (
     <ScrollView style={{ backgroundColor: colori.crema }} contentContainerStyle={{ padding: 14 }}>
@@ -49,6 +64,17 @@ export default function Dettaglio({ route, navigation }: any) {
       <Text style={s.nota2}>{w.calories != null
         ? `🔥 Le calorie sono una stima (equazioni ACSM per camminata e corsa, corrette per la pendenza), calcolata con ${info?.peso_kg ?? '—'} kg di peso. Non conta soste e pause. L'errore tipico è del 15-20%.`
         : '🔥 Per vedere le calorie inserisci il tuo peso in Impostazioni (⚙️ nella Home). I dati restano sul telefono.'}</Text>
+      <Pressable onPress={() => navigation.navigate('Fatica', { id: w.id })} style={[s.fatica, { borderColor: fatica?.colore ?? '#E7D5C0' }]}>
+        {fatica ? (<>
+          <Text style={[s.faticaT, { color: fatica.colore }]}>Fatica percepita: {fatica.valore}/10 · {fatica.titolo}</Text>
+          {!!w.notes && <Text style={s.faticaN}>“{w.notes}”</Text>}
+          <Text style={s.faticaM}>Tocca per modificare</Text>
+        </>) : <Text style={s.faticaT}>💪 Quanto è stata faticosa? Tocca per indicarlo</Text>}
+      </Pressable>
+      {grafici && <>
+        <Grafico titolo="Altitudine" unita="m" dati={grafici.quota} colore={colori.rosso} />
+        <Grafico titolo="Velocità" unita="km/h" dati={grafici.vel} colore={colori.arancio} decimali={1} />
+      </>}
       {info && <BloccoDislivello info={info} />}
       {stimata > 0 && <Text style={s.avviso}>⚠️ Circa {formatDistanza(stimata)} di questo percorso sono una stima in linea retta: in quel tratto il GPS non ha registrato (app sospesa).</Text>}
       <Bottone testo="🗑 Elimina" colore={colori.rossoScuro} style={{ marginTop: 20 }}
@@ -84,6 +110,10 @@ function BloccoDislivello({ info }: { info: NonNullable<ReturnType<typeof leggiI
 }
 
 const s = StyleSheet.create({
+  fatica: { backgroundColor: colori.bianco, borderRadius: 18, borderWidth: 3, padding: 14, marginTop: 10 },
+  faticaT: { fontSize: 17, fontWeight: '800', color: colori.rossoScuro },
+  faticaN: { fontSize: 15, color: colori.testo, marginTop: 6, fontStyle: 'italic' },
+  faticaM: { fontSize: 12, color: colori.testoChiaro, marginTop: 6 },
   nota2: { fontSize: 13, color: colori.testoChiaro, marginTop: 8 },
   blocco: { backgroundColor: colori.bianco, borderRadius: 18, padding: 14, marginTop: 10 },
   bloccoTitolo: { fontSize: 16, fontWeight: '800', color: colori.rossoScuro },

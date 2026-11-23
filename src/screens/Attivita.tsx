@@ -72,7 +72,7 @@ export default function Attivita({ navigation }: any) {
         <BottonePressioneLunga durataMs={1000} colore="#3A3000" testoColore="#FFD23F" style={{ flex: 1, marginRight: 8 }}
           testo={inPausa ? '▶ Riprendi' : '⏸ Pausa'} onConferma={() => (inPausa ? riprendi(w.id) : pausa(w.id))} />
         <BottonePressioneLunga durataMs={2000} colore="#4A0A0A" testoColore="#FF6B6B" style={{ flex: 1, marginLeft: 8 }}
-          testo="■ STOP" onConferma={async () => { await termina(w.id); navigation.replace('Dettaglio', { id: w.id }); }} />
+          testo="■ STOP" onConferma={async () => { await termina(w.id); navigation.replace('Fatica', { id: w.id }); }} />
       </View>
     </View>
   );
