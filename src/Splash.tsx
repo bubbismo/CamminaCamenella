@@ -8,7 +8,7 @@ export function Splash({ children }: { children: React.ReactNode }) {
   const [visibile, setVisibile] = useState(true);
   const entra = useRef(new Animated.Value(0)).current;
   const sparisce = useRef(new Animated.Value(1)).current;
-  const passo = useRef(new Animated.Value(0)).current;
+  const passo = useRef(new Animated.Value(-1)).current; // parte da un estremo: il ciclo ricomincia senza salti
   const invito = useRef(new Animated.Value(0.4)).current;
   const chiuso = useRef(false);
 
@@ -17,8 +17,9 @@ export function Splash({ children }: { children: React.ReactNode }) {
       Animated.spring(entra, { toValue: 1, friction: 5, tension: 70, useNativeDriver: true }),
       // le due dita "camminano": piccolo dondolio a destra e sinistra
       Animated.loop(Animated.sequence([
-        Animated.timing(passo, { toValue: 1, duration: 260, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        Animated.timing(passo, { toValue: -1, duration: 260, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        // oscillazione lenta e sinusoidale: rallenta dolcemente alle estremità, nessuno scatto
+        Animated.timing(passo, { toValue: 1, duration: 1100, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(passo, { toValue: -1, duration: 1100, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ])),
     ]).start();
     // "Tocca per iniziare" pulsa piano
@@ -34,14 +35,16 @@ export function Splash({ children }: { children: React.ReactNode }) {
     Animated.timing(sparisce, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => { setVisibile(false); splashFinito(); });
   };
 
-  const rotazione = passo.interpolate({ inputRange: [-1, 1], outputRange: ['-4deg', '4deg'] });
+  const rotazione = passo.interpolate({ inputRange: [-1, 1], outputRange: ['-2.5deg', '2.5deg'] });
+  // leggero su e giù: la mano si alza a metà oscillazione, come a ogni passo
+  const sollevamento = passo.interpolate({ inputRange: [-1, 0, 1], outputRange: [0, -5, 0] });
   return (
     <View style={{ flex: 1 }}>
       {children}
       {visibile && (
         <Animated.View style={[s.tutto, { opacity: sparisce }]} pointerEvents="auto">
           <Pressable onPress={entraNellApp} style={s.tocco} accessibilityRole="button" accessibilityLabel="Tocca per iniziare">
-          <Animated.View style={{ transform: [{ scale: entra.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }, { rotate: rotazione }] }}>
+          <Animated.View style={{ transform: [{ scale: entra.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }, { translateY: sollevamento }, { rotate: rotazione }] }}>
             <Image source={require('../assets/splash-icon.png')} style={s.logo} resizeMode="contain" />
           </Animated.View>
           <Animated.Text style={[s.nome, { opacity: entra }]}>{'Cammina\nCamenella'}</Animated.Text>
