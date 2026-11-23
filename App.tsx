@@ -7,11 +7,13 @@ import Home from './src/screens/Home';
 import Attivita from './src/screens/Attivita';
 import Storico from './src/screens/Storico';
 import Dettaglio from './src/screens/Dettaglio';
+import { DialogoProvider } from './src/dialogo';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
+    <DialogoProvider>
     <NavigationContainer>
       <StatusBar style="light" />
       <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: colori.rosso }, headerTintColor: colori.bianco }}>
@@ -21,5 +23,6 @@ export default function App() {
         <Stack.Screen name="Dettaglio" component={Dettaglio} options={{ title: 'Dettaglio' }} />
       </Stack.Navigator>
     </NavigationContainer>
+    </DialogoProvider>
   );
 }

@@ -1,4 +1,4 @@
-import type { Punto } from './db';
+import type { Punto } from './tipi';
 
 export function distanza(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
   const R = 6371008.8, rad = Math.PI / 180;
@@ -64,4 +64,11 @@ export function formatPasso(distanzaM: number, ms: number): string {
   if (minKm > 99) return '--:--';
   const mm = Math.floor(minKm), ss = Math.round((minKm - mm) * 60);
   return `${mm}:${String(ss === 60 ? 59 : ss).padStart(2, '0')}`;
+}
+
+// Distanza coperta dai soli tratti "stimati" (senza GPS, dopo un'interruzione).
+export function distanzaStimata(pts: Punto[]): number {
+  let d = 0;
+  for (let i = 1; i < pts.length; i++) if (pts[i].gap) d += distanza(pts[i - 1], pts[i]);
+  return d;
 }

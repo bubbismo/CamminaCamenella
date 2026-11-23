@@ -22,7 +22,9 @@
       "permissions": []
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./public/icon-192.png"
     },
     "backgroundColor": "#E5202A",
     "plugins": [
@@ -36,6 +38,9 @@
         }
       ],
       "expo-notifications"
-    ]
+    ],
+    "experiments": {
+      "baseUrl": "/CamminaCamenella"
+    }
   }
 }

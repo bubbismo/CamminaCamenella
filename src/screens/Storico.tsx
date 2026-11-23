@@ -2,8 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { colori } from '../theme';
-import { Camminata, elencoCamminate } from '../db';
-import { formatDistanza, formatDurata } from '../geo';
+import {  elencoCamminate } from '../archivio';
+import type { Camminata } from '../core/tipi';
+import { formatDistanza, formatDurata } from '../core/geo';
 
 export default function Storico({ navigation }: any) {
   const [lista, setLista] = useState<Camminata[]>([]);

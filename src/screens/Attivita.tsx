@@ -1,17 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, Alert } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
-import { Bottone, Dato } from '../ui';
-import { colori } from '../theme';
-import { Camminata, camminataInCorso, punti } from '../db';
-import { formatDistanza, formatDurata, formatPasso, statistiche } from '../geo';
-import { pausa, riprendi, termina } from '../tracking';
+import { BottonePressioneLunga } from '../ui';
+import { Camminata } from '../core/tipi';
+import { camminataInCorso, punti } from '../archivio';
+import { formatDistanza, formatDurata, formatPasso, statistiche } from '../core/geo';
+import { pausa, riprendi, termina } from '../core/sessione';
+import { statoGps } from '../tracking';
+
+// Schermata di corsa: sfondo nero (risparmio batteria su OLED), solo numeri essenziali.
+const GRIGIO = '#9A9A9A';
+const GRIGIO_SCURO = '#555';
 
 export default function Attivita({ navigation }: any) {
-  useKeepAwake();
+  // Su web il blocco dello schermo lo gestisce tracking.web.ts (wake lock con ripristino).
+  if (Platform.OS !== 'web') useKeepAwake();
   const [w, setW] = useState<Camminata | null>(null);
   const [st, setSt] = useState({ distanzaM: 0, salitaM: 0, discesaM: 0 });
   const [ora, setOra] = useState(Date.now());
+  const [gps, setGps] = useState<{ acc: number | null; t: number | null }>({ acc: null, t: null });
 
   useEffect(() => {
     let vivo = true;
@@ -19,51 +26,52 @@ export default function Attivita({ navigation }: any) {
       const c = await camminataInCorso();
       if (!vivo) return;
       setW(c); setOra(Date.now());
-      if (c) setSt(statistiche(await punti(c.id)));
+      if (c) { setSt(statistiche(await punti(c.id))); setGps(await statoGps(c.id)); }
     };
     giro();
     const t = setInterval(giro, 1000);
     return () => { vivo = false; clearInterval(t); };
   }, []);
 
-  if (!w) return <View style={s.c}><Text style={s.msg}>Nessuna attività in corso</Text>
-    <Bottone testo="Indietro" onPress={() => navigation.popToTop()} /></View>;
+  if (!w) return <View style={s.c}><Text style={s.nota}>Nessuna attività in corso</Text>
+    <BottonePressioneLunga testo="Indietro" durataMs={300} onConferma={() => navigation.popToTop()} /></View>;
 
-  const fine = w.status === 'paused' ? w.paused_since! : ora;
-  const attivoMs = Math.max(0, fine - w.started_at - w.paused_total_ms);
   const inPausa = w.status === 'paused';
+  const fine = inPausa ? w.paused_since! : ora;
+  const attivoMs = Math.max(0, fine - w.started_at - w.paused_total_ms);
 
-  const stop = () => Alert.alert('Finito?', 'Vuoi terminare la camminata?', [
-    { text: 'Continua' },
-    { text: 'Sì, stop', style: 'destructive', onPress: async () => {
-      await termina(w.id); navigation.replace('Dettaglio', { id: w.id }); } },
-  ]);
+  let stato = 'Cerco il segnale GPS…', coloreStato = '#E0A000';
+  if (inPausa) { stato = '⏸ In pausa'; coloreStato = GRIGIO; }
+  else if (gps.acc != null) {
+    const eta = gps.t ? (ora - gps.t) / 1000 : 99;
+    if (gps.acc <= 20 && eta < 15) { stato = `GPS buono (±${Math.round(gps.acc)} m)`; coloreStato = '#2EAD5B'; }
+    else { stato = `GPS debole (±${Math.round(gps.acc)} m)`; coloreStato = '#E0A000'; }
+  }
 
   return (
     <View style={s.c}>
-      <Text style={s.tempo}>{formatDurata(attivoMs)}</Text>
-      <Text style={s.stato}>{inPausa ? '⏸ In pausa' : 'Forza, così! 🔥'}</Text>
-      <ScrollView contentContainerStyle={s.griglia}>
-        <Dato etichetta="Distanza" valore={formatDistanza(st.distanzaM)} />
-        <Dato etichetta="Passo (min/km)" valore={formatPasso(st.distanzaM, attivoMs)} />
-        <Dato etichetta="Salita" valore={`▲ ${Math.round(st.salitaM)} m`} />
-        <Dato etichetta="Discesa" valore={`▼ ${Math.round(st.discesaM)} m`} />
-      </ScrollView>
+      <Text style={[s.stato, { color: coloreStato }]}>{stato}</Text>
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <Text style={s.tempo}>{formatDurata(attivoMs)}</Text>
+        <Text style={s.km}>{formatDistanza(st.distanzaM)}</Text>
+        <Text style={s.sec}>Passo {formatPasso(st.distanzaM, attivoMs)} min/km   ▲ {Math.round(st.salitaM)} m   ▼ {Math.round(st.discesaM)} m</Text>
+      </View>
       <View style={s.riga}>
-        <Bottone grande style={{ flex: 1, marginRight: 8 }} colore={colori.giallo}
-          testo={inPausa ? '▶ Riprendi' : '⏸ Pausa'}
-          onPress={() => (inPausa ? riprendi(w.id) : pausa(w.id))} />
-        <Bottone grande style={{ flex: 1, marginLeft: 8 }} colore={colori.rossoScuro} testo="■ STOP" onPress={stop} />
+        <BottonePressioneLunga durataMs={1000} colore="#3A3000" testoColore="#FFD23F" style={{ flex: 1, marginRight: 8 }}
+          testo={inPausa ? '▶ Riprendi' : '⏸ Pausa'} onConferma={() => (inPausa ? riprendi(w.id) : pausa(w.id))} />
+        <BottonePressioneLunga durataMs={2000} colore="#4A0A0A" testoColore="#FF6B6B" style={{ flex: 1, marginLeft: 8 }}
+          testo="■ STOP" onConferma={async () => { await termina(w.id); navigation.replace('Dettaglio', { id: w.id }); }} />
       </View>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  c: { flex: 1, backgroundColor: colori.rosso, padding: 16, paddingTop: 50 },
-  tempo: { fontSize: 72, fontWeight: '900', color: colori.bianco, textAlign: 'center' },
-  stato: { fontSize: 18, color: colori.giallo, textAlign: 'center', marginBottom: 10 },
-  griglia: { flexDirection: 'row', flexWrap: 'wrap' },
+  c: { flex: 1, backgroundColor: '#000', padding: 16, paddingTop: 50 },
+  stato: { fontSize: 16, textAlign: 'center', fontWeight: '700' },
+  tempo: { fontSize: 80, fontWeight: '800', color: GRIGIO, textAlign: 'center' },
+  km: { fontSize: 56, fontWeight: '700', color: GRIGIO, textAlign: 'center' },
+  sec: { fontSize: 16, color: GRIGIO_SCURO, textAlign: 'center', marginTop: 16 },
   riga: { flexDirection: 'row', paddingVertical: 12 },
-  msg: { color: colori.bianco, fontSize: 20, textAlign: 'center', marginVertical: 30 },
+  nota: { color: GRIGIO, fontSize: 20, textAlign: 'center', marginVertical: 30 },
 });

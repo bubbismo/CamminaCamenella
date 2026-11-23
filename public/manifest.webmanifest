@@ -1,0 +1,16 @@
+{
+  "name": "CamminaCamenella",
+  "short_name": "CamminaCamenella",
+  "description": "Registra camminate e corse. Tutti i dati restano sul tuo telefono.",
+  "lang": "it",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E5202A",
+  "theme_color": "#E5202A",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
