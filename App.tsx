@@ -11,12 +11,14 @@ import AvatarEditor from './src/screens/AvatarEditor';
 import Fatica from './src/screens/Fatica';
 import Impostazioni from './src/screens/Impostazioni';
 import { DialogoProvider } from './src/dialogo';
+import { Splash } from './src/Splash';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <DialogoProvider>
+    <Splash>
     <NavigationContainer>
       <StatusBar style="light" />
       <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: colori.rosso }, headerTintColor: colori.bianco }}>
@@ -29,6 +31,7 @@ export default function App() {
         <Stack.Screen name="Dettaglio" component={Dettaglio} options={{ title: 'Dettaglio' }} />
       </Stack.Navigator>
     </NavigationContainer>
+    </Splash>
     </DialogoProvider>
   );
 }

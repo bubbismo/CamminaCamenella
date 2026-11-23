@@ -17,11 +17,18 @@
       html, body { height: 100%; background: #E5202A; overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
       body { overflow: hidden; }
       #root { display: flex; height: 100%; flex: 1; }
+      #avvio { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #E5202A; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      #avvio img { width: 220px; height: 220px; }
+      #avvio .nome { margin-top: 8px; font-size: 36px; font-weight: 900; color: #FFD23F; letter-spacing: -0.5px; }
+      #avvio .slogan { margin-top: 6px; font-size: 18px; color: #fff; }
     </style>
   </head>
   <body>
     <noscript>Serve JavaScript per usare CamminaCamenella.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Schermata iniziale: si vede subito, mentre l'app si carica. Identica a quella animata dell'app. -->
+      <div id="avvio"><img src="logo.png" alt="" width="220" height="220" /><div class="nome">CamminaCamenella</div><div class="slogan">Ogni passo conta!</div></div>
+    </div>
     <script>
       // Il menu contestuale (pressione lunga) annullerebbe il tocco sui pulsanti: lo fermiamo prima che arrivi all'app.
       ['contextmenu', 'selectstart'].forEach(function (n) {

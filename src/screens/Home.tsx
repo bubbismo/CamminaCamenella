@@ -11,6 +11,7 @@ import { useDialogo } from '../dialogo';
 import { pesoConfigurato, riprovaCorrezioniPendenti } from '../core/altimetria/servizio';
 import { leggiPref, scriviPref } from '../preferenze';
 import { Avatar } from '../Avatar';
+import { dopoSplash } from '../avvio';
 import { AvatarConfig, leggiAvatar } from '../core/avatar';
 
 const FRASI = ['Ogni passo conta! 💪', 'Oggi si va forte! 🔥', 'Le gambe sono pronte? 😄', 'Che bella giornata per camminare! ☀️'];
@@ -42,8 +43,8 @@ export default function Home({ navigation }: any) {
       // Primo avvio: si propone di personalizzare l'app con un avatar.
       if (!w && leggiPref('avatar_chiesto', '0') !== '1') {
         scriviPref('avatar_chiesto', '1');
-        dialogo({ titolo: 'Vuoi personalizzare l\'app? 🎨', messaggio: 'Crea il tuo avatar: capelli, occhiali, colori… Si disegna sul telefono, senza foto e senza inviare nulla a nessuno.',
-          bottoni: [{ testo: 'Crea il mio avatar', onPress: () => navigation.navigate('Avatar') }, { testo: 'Più tardi', stile: 'secondario' }] });
+        dopoSplash(() => dialogo({ titolo: 'Vuoi personalizzare l\'app? 🎨', messaggio: 'Crea il tuo avatar: capelli, occhiali, colori… Si disegna sul telefono, senza foto e senza inviare nulla a nessuno.',
+          bottoni: [{ testo: 'Crea il mio avatar', onPress: () => navigation.navigate('Avatar') }, { testo: 'Più tardi', stile: 'secondario' }] }));
       }
       // Corsa rimasta in sospeso (app chiusa o sospesa): si chiede che fare.
       if (w && !(await staTracciando())) {
