@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Bottone } from '../ui';
@@ -37,9 +37,16 @@ export default function Home({ navigation }: any) {
     })();
   }, []));
 
+  const occupato = useRef(false);
   const impostazioni = () => { if (Platform.OS !== 'web') Linking.openSettings(); };
 
   const start = async () => {
+    if (occupato.current) return;
+    occupato.current = true;
+    try { await avviaTutto(); } finally { occupato.current = false; }
+  };
+
+  const avviaTutto = async () => {
     if (inCorso) return navigation.navigate('Attivita');
     const p = await richiediPermessi();
     if (p === 'negato') {

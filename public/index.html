@@ -13,6 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="CamminaCamenella" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <style id="expo-reset">
+      * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
       html, body { height: 100%; background: #E5202A; overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
       body { overflow: hidden; }
       #root { display: flex; height: 100%; flex: 1; }
@@ -22,6 +23,10 @@
     <noscript>Serve JavaScript per usare CamminaCamenella.</noscript>
     <div id="root"></div>
     <script>
+      // Il menu contestuale (pressione lunga) annullerebbe il tocco sui pulsanti: lo fermiamo prima che arrivi all'app.
+      ['contextmenu', 'selectstart'].forEach(function (n) {
+        window.addEventListener(n, function (e) { e.preventDefault(); e.stopImmediatePropagation(); }, true);
+      });
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
       }

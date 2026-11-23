@@ -18,7 +18,7 @@ export default function Attivita({ navigation }: any) {
   const [w, setW] = useState<Camminata | null>(null);
   const [st, setSt] = useState({ distanzaM: 0, salitaM: 0, discesaM: 0 });
   const [ora, setOra] = useState(Date.now());
-  const [gps, setGps] = useState<{ acc: number | null; t: number | null }>({ acc: null, t: null });
+  const [gps, setGps] = useState<{ acc: number | null; t: number | null; errore: string | null }>({ acc: null, t: null, errore: null });
 
   useEffect(() => {
     let vivo = true;
@@ -42,6 +42,7 @@ export default function Attivita({ navigation }: any) {
 
   let stato = 'Cerco il segnale GPS…', coloreStato = '#E0A000';
   if (inPausa) { stato = '⏸ In pausa'; coloreStato = GRIGIO; }
+  else if (gps.errore === 'negato') { stato = '⚠️ Posizione non consentita: abilitala nelle impostazioni del browser'; coloreStato = '#FF6B6B'; }
   else if (gps.acc != null) {
     const eta = gps.t ? (ora - gps.t) / 1000 : 99;
     if (gps.acc <= 20 && eta < 15) { stato = `GPS buono (±${Math.round(gps.acc)} m)`; coloreStato = '#2EAD5B'; }

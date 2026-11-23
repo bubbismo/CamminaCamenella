@@ -60,7 +60,7 @@ export async function staTracciando(): Promise<boolean> {
   return Location.hasStartedLocationUpdatesAsync(TASK_GPS);
 }
 
-export async function statoGps(walkId: number): Promise<{ acc: number | null; t: number | null }> {
+export async function statoGps(walkId: number): Promise<{ acc: number | null; t: number | null; errore: string | null }> {
   const p = await ultimoPunto(walkId);
-  return { acc: p?.acc ?? null, t: p?.t ?? null };
+  return { acc: p?.acc ?? null, t: p?.t ?? null, errore: null };
 }

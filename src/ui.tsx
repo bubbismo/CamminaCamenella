@@ -46,7 +46,7 @@ export function BottonePressioneLunga({ testo, onConferma, durataMs = 2000, colo
     }, 40);
   };
   return (
-    <Pressable onPressIn={premi} onPressOut={ferma} style={[s.btn, s.btnGrande, { backgroundColor: colore, overflow: 'hidden' }, style]}>
+    <Pressable onPressIn={premi} onPressOut={ferma} pressRetentionOffset={{ top: 200, bottom: 200, left: 200, right: 200 }} style={[s.btn, s.btnGrande, { backgroundColor: colore, overflow: 'hidden', touchAction: 'none' } as any, style]}>
       <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${p * 100}%`, backgroundColor: 'rgba(255,255,255,0.35)' }} />
       <Text style={[s.btnTesto, { fontSize: 22, color: testoColore }]}>{testo}</Text>
       <Text style={{ color: testoColore, opacity: 0.7, fontSize: 12 }}>tieni premuto</Text>
