@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "CamminaCamenella",
+    "slug": "CamminaCamenella",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "it.camminacamenella.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E5202A",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "it.camminacamenella.app",
+      "permissions": []
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "backgroundColor": "#E5202A"
+  }
+}
