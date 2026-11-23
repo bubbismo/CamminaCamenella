@@ -5,7 +5,7 @@ import { Bottone } from '../ui';
 import { colori } from '../theme';
 import { camminataInCorso, elencoCamminate } from '../archivio';
 import { richiediPermessi, sfondoPossibile, staTracciando } from '../tracking';
-import { avvia, riprendiDopoInterruzione, scarta, termina } from '../core/sessione';
+import { avvia, pulisciVuote, riprendiDopoInterruzione, scarta, termina } from '../core/sessione';
 import { formatDistanza } from '../core/geo';
 import { useDialogo } from '../dialogo';
 
@@ -17,8 +17,9 @@ export default function Home({ navigation }: any) {
   const [inCorso, setInCorso] = useState(false);
   const [ultima, setUltima] = useState<string | null>(null);
 
-  useFocusEffect(useCallback(() => {
+  const controlla = useCallback(() => {
     (async () => {
+      await pulisciVuote();
       const w = await camminataInCorso();
       setInCorso(!!w);
       const e = await elencoCamminate();
@@ -30,12 +31,13 @@ export default function Home({ navigation }: any) {
           bottoni: [
             { testo: 'Riprendi', onPress: async () => { await riprendiDopoInterruzione(w.id); navigation.navigate('Attivita'); } },
             { testo: 'Termina e salva', stile: 'secondario', onPress: async () => { await termina(w.id); navigation.navigate('Dettaglio', { id: w.id }); } },
-            { testo: 'Scarta', stile: 'pericolo', onPress: async () => { await scarta(w.id); setInCorso(false); } },
+            { testo: 'Scarta', stile: 'pericolo', onPress: async () => { await scarta(w.id); controlla(); } },
           ],
         });
       }
     })();
-  }, []));
+  }, []);
+  useFocusEffect(controlla);
 
   const occupato = useRef(false);
   const impostazioni = () => { if (Platform.OS !== 'web') Linking.openSettings(); };

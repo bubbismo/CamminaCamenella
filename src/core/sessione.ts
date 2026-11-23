@@ -1,5 +1,5 @@
 // Ciclo di vita di una camminata: identico su Android e sul web.
-import { aggiorna, camminata, eliminaCamminata, nuovaCamminata, punti } from '../archivio';
+import { aggiorna, camminata, camminateAperte, eliminaCamminata, nuovaCamminata, punti } from '../archivio';
 import { avviaTracciamento, fermaTracciamento } from '../tracking';
 import { statistiche } from './geo';
 
@@ -44,4 +44,11 @@ export async function termina(id: number) {
 export async function scarta(id: number) {
   await fermaTracciamento();
   await eliminaCamminata(id);
+}
+
+/** Elimina le corse rimaste aperte senza dati (es. Start premuto più volte): non c'è nulla da riprendere. */
+export async function pulisciVuote() {
+  for (const w of await camminateAperte()) {
+    if ((await punti(w.id)).length < 2) await eliminaCamminata(w.id);
+  }
 }

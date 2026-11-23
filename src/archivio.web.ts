@@ -57,6 +57,11 @@ export async function camminataInCorso(): Promise<Camminata | null> {
   return attive.length ? attive[attive.length - 1] : null;
 }
 
+export async function camminateAperte(): Promise<Camminata[]> {
+  const tutte = (await rich((await store('walks')).getAll())) as Camminata[];
+  return tutte.filter((w) => w.status !== 'done').sort((a, b) => a.id - b.id);
+}
+
 export async function aggiungiPunto(walkId: number, p: Punto) {
   await rich((await store('points', true)).add({ ...p, walk_id: walkId, gap: p.gap ?? null }));
 }

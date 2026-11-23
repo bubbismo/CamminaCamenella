@@ -56,6 +56,11 @@ export async function camminataInCorso(): Promise<Camminata | null> {
   return db.getFirstAsync<Camminata>("SELECT * FROM walks WHERE status IN ('recording','paused') ORDER BY id DESC LIMIT 1");
 }
 
+export async function camminateAperte(): Promise<Camminata[]> {
+  const db = await getDb();
+  return db.getAllAsync<Camminata>("SELECT * FROM walks WHERE status IN ('recording','paused') ORDER BY id");
+}
+
 export async function aggiungiPunto(walkId: number, p: Punto) {
   const db = await getDb();
   await db.runAsync('INSERT INTO points (walk_id,t,lat,lon,alt,acc,speed,gap) VALUES (?,?,?,?,?,?,?,?)',
